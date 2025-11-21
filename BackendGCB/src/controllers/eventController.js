@@ -1,80 +1,141 @@
 const Event = require("../models/Event");
+const Reservation = require("../models/Reservation");
+const User = require("../models/User");
+const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
+const path = require("path");
+const sendEmail = require("../utils/sendEmail");
 
-// @desc    Create a new event
-// @route   POST /api/events
-const createEvent = async (req, res) => {
+// Load cancellation email template
+const cancellationTemplate = fs.readFileSync(
+  path.join(__dirname, "../templates/cancellationTemplate.html"),
+  "utf-8"
+);
+
+// CREATE EVENT (Admin Only)
+exports.createEvent = async (req, res, next) => {
   try {
-    const { title, description, date, time, venue, createdBy } = req.body;
-    const newEvent = await Event.create({
+    const { title, category, description, date, time, location, maxSeats } =
+      req.body;
+
+    // Cloudinary uploaded image
+    const imageUrl = req.file ? req.file.path : null;
+    const imagePublicId = req.file ? req.file.filename : null;
+
+    const event = await Event.create({
       title,
+      category,
       description,
       date,
       time,
-      venue,
-      createdBy,
+      location,
+      maxSeats,
+      image: imageUrl,
+      imagePublicId,
+      createdBy: req.user.id,
     });
-    res.status(201).json(newEvent);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    res.status(201).json({ message: "Event created", event });
+  } catch (error) {
+    next(error);
   }
 };
 
-// @desc    Get all events
-// @route   GET /api/events
-const getAllEvents = async (req, res) => {
+// GET ALL EVENTS
+exports.getEvents = async (req, res, next) => {
   try {
-    const events = await Event.find().populate("createdBy", "name email");
+    const events = await Event.find().populate("category");
     res.json(events);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    next(error);
   }
 };
 
-// @desc    Get event by ID
-// @route   GET /api/events/:id
-const getEventById = async (req, res) => {
+// GET SINGLE EVENT
+exports.getEventById = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id).populate(
-      "createdBy",
-      "name"
-    );
-    if (!event) return res.status(404).json({ message: "Event not found" });
+    const event = await Event.findById(req.params.id).populate("category");
+
+    if (!event) {
+      const err = new Error("Event not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
     res.json(event);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    next(error);
   }
 };
 
-// @desc    Update an event
-// @route   PUT /api/events/:id
-const updateEvent = async (req, res) => {
+// UPDATE EVENT (Admin Only)
+exports.updateEvent = async (req, res, next) => {
   try {
-    const updated = await Event.findByIdAndUpdate(req.params.id, req.body, {
+    const imageUrl = req.file ? req.file.path : undefined;
+    const imagePublicId = req.file ? req.file.filename : undefined;
+
+    const updatedData = {
+      ...req.body,
+      ...(imageUrl && { image: imageUrl }),
+      ...(imagePublicId && { imagePublicId }),
+    };
+
+    const event = await Event.findByIdAndUpdate(req.params.id, updatedData, {
       new: true,
     });
-    if (!updated) return res.status(404).json({ message: "Event not found" });
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    if (!event) {
+      const err = new Error("Event not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    res.json({ message: "Event updated", event });
+  } catch (error) {
+    next(error);
   }
 };
 
-// @desc    Delete an event
-// @route   DELETE /api/events/:id
-const deleteEvent = async (req, res) => {
+// DELETE EVENT (Admin Only)
+exports.deleteEvent = async (req, res, next) => {
   try {
-    const deleted = await Event.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Event not found" });
-    res.json({ message: "Event deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    const id = req.params.id;
 
-module.exports = {
-  createEvent,
-  getAllEvents,
-  getEventById,
-  updateEvent,
-  deleteEvent,
+    const event = await Event.findById(id);
+    if (!event) {
+      const err = new Error("Event not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    // 1️⃣ Delete image from Cloudinary
+    if (event.imagePublicId) {
+      await cloudinary.uploader.destroy(event.imagePublicId);
+    }
+
+    // 2️⃣ Find all reservations for this event
+    const reservations = await Reservation.find({ event: id }).populate("user");
+
+    // 3️⃣ Send cancellation emails
+    for (let booking of reservations) {
+      const html = cancellationTemplate
+        .replace("{{name}}", booking.user.name)
+        .replace("{{eventTitle}}", event.title)
+        .replace("{{eventDate}}", event.date);
+
+      await sendEmail(booking.user.email, "Event Cancellation Notice", html);
+    }
+
+    // 4️⃣ Remove event
+    await Event.findByIdAndDelete(id);
+
+    // 5️⃣ Remove all bookings
+    await Reservation.deleteMany({ event: id });
+
+    res.json({
+      message: "Event deleted, image removed, emails sent",
+    });
+  } catch (error) {
+    next(error);
+  }
 };

@@ -1,26 +1,30 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   createEvent,
-  getAllEvents,
+  getEvents,
   getEventById,
   updateEvent,
   deleteEvent,
 } = require("../controllers/eventController");
 
-// POST - Create a new event (Admin only)
-router.post("/", createEvent);
+const { protect, adminOnly } = require("../middleware/authMiddleware");
+const upload = require("../middleware/upload");
 
-// GET - Fetch all events (Admin or Student)
-router.get("/", getAllEvents);
+// CREATE EVENT (Admin)
+router.post("/", protect, adminOnly, upload.single("image"), createEvent);
 
-// GET - Fetch a single event by ID
+// GET ALL EVENTS
+router.get("/", getEvents);
+
+// GET SINGLE EVENT
 router.get("/:id", getEventById);
 
-// PUT - Update event details (Admin only)
-router.put("/:id", updateEvent);
+// UPDATE EVENT (Admin)
+router.put("/:id", protect, adminOnly, upload.single("image"), updateEvent);
 
-// DELETE - Delete an event (Admin only)
-router.delete("/:id", deleteEvent);
+// DELETE EVENT (Admin)
+router.delete("/:id", protect, adminOnly, deleteEvent);
 
 module.exports = router;

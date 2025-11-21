@@ -3,19 +3,37 @@ const mongoose = require("mongoose");
 const eventSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    description: { type: String },
-    date: { type: Date, required: true },
-    time: { type: String },
-    venue: { type: String, required: true },
-    createdBy: {
+
+    description: { type: String, required: true },
+
+    date: { type: String, required: true }, // keep as string for simplicity
+
+    time: { type: String, required: true },
+
+    location: { type: String, required: true },
+
+    maxSeats: { type: Number, required: true },
+
+    category: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Admin",
+      ref: "Category",
       required: true,
     },
-    status: {
-      type: String,
-      enum: ["upcoming", "completed", "cancelled"],
-      default: "upcoming",
+
+    image: {
+      type: String, // Cloudinary URL
+      default: null,
+    },
+
+    imagePublicId: {
+      type: String, // Cloudinary public_id
+      default: null,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   { timestamps: true }
