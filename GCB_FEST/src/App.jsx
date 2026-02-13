@@ -1,13 +1,13 @@
-import React from 'react'
+import AppRoutes from "./routes/AppRoutes";
+import { Toaster } from "react-hot-toast";
 
-export default function App() {
+function App() {
   return (
     <>
-      <div>
-        <h1 className='text-4xl'>this is the new project ,will start soon</h1>
-        <h2 className='font-medium text-amber-400'>this is the startup</h2>
-
-    </div>
+      <AppRoutes />
+      <Toaster position="top-right" />
     </>
-  )
+  );
 }
+
+export default App;

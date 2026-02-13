@@ -1,16 +1,46 @@
-# React + Vite
+# GCB-FEST
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+GCB-FEST is a project developed as part of a Final Year Project (FYP). This repository contains the implementation and related materials for the GCB-FEST system.
 
-Currently, two official plugins are available:
+## Repository Information
+- **Repository**: GCB-FEST
+- **Owner**: junior1242
+- **Branch**: master
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting Started
 
-## React Compiler
+### Prerequisites
+List any prerequisites, dependencies, or system requirements here.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/junior1242/GCB-FEST.git
+cd GCB-FEST
 
-## Expanding the ESLint configuration
+# Add installation steps here
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Usage
+Provide instructions on how to use the project.
+
+## Project Structure
+Describe the main directories and files in your project.
+
+## Features
+- List key features of your project
+- Add more features as needed
+
+## Contributing
+Instructions for contributing to the project.
+
+## License
+Specify the license for your project.
+
+## Contact
+- Author: junior1242
+- Project: Final Year Project (FYP)
+
+## Acknowledgments
+Add any acknowledgments or credits here.

@@ -108,15 +108,13 @@ exports.deleteEvent = async (req, res, next) => {
       return next(err);
     }
 
-    // 1️⃣ Delete image from Cloudinary
+ 
     if (event.imagePublicId) {
       await cloudinary.uploader.destroy(event.imagePublicId);
     }
 
-    // 2️⃣ Find all reservations for this event
     const reservations = await Reservation.find({ event: id }).populate("user");
 
-    // 3️⃣ Send cancellation emails
     for (let booking of reservations) {
       const html = cancellationTemplate
         .replace("{{name}}", booking.user.name)
@@ -126,10 +124,10 @@ exports.deleteEvent = async (req, res, next) => {
       await sendEmail(booking.user.email, "Event Cancellation Notice", html);
     }
 
-    // 4️⃣ Remove event
+    //  Remove event
     await Event.findByIdAndDelete(id);
 
-    // 5️⃣ Remove all bookings
+    //  Remove all bookings
     await Reservation.deleteMany({ event: id });
 
     res.json({
