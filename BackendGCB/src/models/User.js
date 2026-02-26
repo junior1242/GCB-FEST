@@ -13,14 +13,27 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
     },
+    rollNumber: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    department: {
+      type: String,
+      required: true,
+    },
+    semester: {
+      type: String,
+      required: true,
+    },
     password: {
       type: String,
       required: [true, "Password is required"],
-      select: false, // prevents sending password by default
+      select: false, 
     },
     role: {
       type: String,
-      enum: ["student", "admin", "teacher"],
+      enum: ["student", "admin"],
       default: "student",
     },
   },

@@ -17,7 +17,7 @@ const studentProfileSchema = new mongoose.Schema({
     required: true,
   },
   semester: {
-    type: Number,
+    type: String,
     required: true,
   },
 });
