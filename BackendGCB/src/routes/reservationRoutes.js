@@ -1,13 +1,13 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const {
+import {
   bookEvent,
   getMyBookings,
   cancelBooking,
-} = require("../controllers/reservationController");
+} from "../controllers/reservationController.js";
 
-const { protect } = require("../middleware/authMiddleware");
+import { protect } from "../middleware/authMiddleware.js";
 
 // BOOK EVENT
 router.post("/book", protect, bookEvent);
@@ -18,4 +18,4 @@ router.get("/my-bookings", protect, getMyBookings);
 // CANCEL BOOKING
 router.delete("/cancel/:id", protect, cancelBooking);
 
-module.exports = router;
+export default router;

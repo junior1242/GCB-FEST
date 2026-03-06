@@ -1,16 +1,9 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-
-const {
-  createEvent,
-  getEvents,
-  getEventById,
-  updateEvent,
-  deleteEvent,
-} = require("../controllers/eventController");
-
-const { protect, adminOnly } = require("../middleware/authMiddleware");
-const upload = require("../middleware/upload");
+import { createEvent,getEvents,getEventById,updateEvent,deleteEvent } from "../controllers/eventController.js";
+import { protect, adminOnly} from "../middleware/authMiddleware.js";
+// const upload = require("../middleware/upload");
+import { upload } from '../middleware/upload.js';
 
 // CREATE EVENT (Admin)
 router.post("/", protect, adminOnly, upload.single("image"), createEvent);
@@ -27,4 +20,4 @@ router.put("/:id", protect, adminOnly, upload.single("image"), updateEvent);
 // DELETE EVENT (Admin)
 router.delete("/:id", protect, adminOnly, deleteEvent);
 
-module.exports = router;
+export default router;

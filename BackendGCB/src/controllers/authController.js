@@ -1,127 +1,129 @@
 import User from "../models/User.js";
-// import StudentProfile from "../models/StudentProfile.js";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendEmail } from "../utils/sendEmail.js";
 
-//& REGISTER USER (ADMIN OR STUDENT)
-const register = async (req, res, next) => {
+// REGISTER USER
+export const register = async (req, res, next) => {
   try {
     const { name, email, password, rollNumber, department, semester } =
       req.body;
 
-    if (!name || !email || !password) {
-      const err = new Error("Name, email and password are required");
-      err.statusCode = 400;
-      return next(err);
-    }
+    if (!name || !email || !password)
+      return res
+        .status(400)
+        .json({ message: "Name, email and password required" });
 
-    // 2️⃣ Student-specific validation
-    if (!rollNumber || !department || !semester) {
-      const err = new Error("Student details are required");
-      err.statusCode = 400;
-      return next(err);
-    }
-
-    // 3️⃣ Pre-check for existing email or rollNumber (friendly UX)
-    const userExists = await User.findOne({
+    const existingUser = await User.findOne({
       $or: [{ email }, { rollNumber }],
     });
+    if (existingUser)
+      return res.status(400).json({ message: "Student already exists" });
 
-    if (userExists) {
-      if (userExists.email === email) {
-        const err = new Error("The Student already registered with this email");
-        err.statusCode = 400;
-        return next(err);
-      }
-      if (userExists.rollNumber === rollNumber) {
-        const err = new Error(
-          "The Student already registered with this roll number",
-        );
-        err.statusCode = 400;
-        return next(err);
-      }
-    }
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    // 4️⃣ Create USER with safety for unique indexes
-    let user;
+    // Hash the token for the database (Security best practice)
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      rollNumber,
+      department,
+      semester,
+      role: "student",
+      verificationToken: hashedToken,
+      verificationTokenExpire: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    // Link sent to user (contains RAW token)
+    const verifyURL = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+
+    const message = `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee;">
+          <h2>Account Verification</h2>
+          <p>Thank you for registering. Please click the button below to verify your email:</p>
+          <a href="${verifyURL}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a>
+          <p>This link expires in 24 hours.</p>
+        </div>
+    `;
+
     try {
-      user = await User.create({
-        name,
-        email,
-        rollNumber,
-        department,
-        semester,
-        password, // hashed in schema
-        role: "student",
+      await sendEmail({
+        email: user.email,
+        subject: "Verify Your Account",
+        message: message,
+      });
+
+      res.status(201).json({
+        message:
+          "Registration successful. Please check your email to verify your account.",
       });
     } catch (err) {
-      // Catch MongoDB duplicate key error (E11000)
-      if (err.code === 11000) {
-        const field = Object.keys(err.keyValue)[0]; // email or rollNumber
-        const errorMessage = `The Student already registered with this ${field}`;
-        const error = new Error(errorMessage);
-        error.statusCode = 400;
-        return next(error);
-      }
-      return next(err); // other errors
+      // If email fails, delete the user so they can try again
+      await User.findByIdAndDelete(user._id);
+      return res
+        .status(500)
+        .json({ message: "Email could not be sent. Please try again." });
     }
-
-    // 5️⃣ Create STUDENT PROFILE
-    // await StudentProfile.create({
-    //   userId: user._id,
-    //   rollNumber,
-    //   department,
-    //   semester,
-    // });
-
-    // 6️⃣ Generate JWT
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
-
-    // 7️⃣ Send success response
-    res.status(201).json({
-      message: "Student registered successfully",
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
   } catch (error) {
-    next(error); // send to your errorHandler.js
+    next(error);
   }
 };
 
+// EMAIL VERIFICATION (Route: /api/auth/verify-email/:token)
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const token = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
 
-//& LOGIN USER (ADMIN OR STUDENT)
-const login = async (req, res, next) => {
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Link is invalid or has expired." });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpire = undefined;
+    await user.save();
+
+    res.json({ message: "Email verified successfully! You can now log in." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// LOGIN USER
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      const err = new Error("Email and password are required");
-      err.statusCode = 400;
-      return next(err);
-    }
-
     const user = await User.findOne({ email }).select("+password");
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    if (!user) {
-      const err = new Error("Invalid email or password");
-      err.statusCode = 400;
-      return next(err);
+    // 1. Check if user is verified before allowing login
+    if (!user.isVerified) {
+      return res.status(401).json({
+        message: "Your email is not verified. Please check your inbox.",
+      });
     }
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      const err = new Error("Invalid email or password");
-      err.statusCode = 400;
-      return next(err);
-    }
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -143,5 +145,3 @@ const login = async (req, res, next) => {
     next(error);
   }
 };
-
-export { register, login };

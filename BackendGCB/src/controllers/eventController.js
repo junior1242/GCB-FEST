@@ -1,19 +1,21 @@
-const Event = require("../models/Event");
-const Reservation = require("../models/Reservation");
-const User = require("../models/User");
-const cloudinary = require("../config/cloudinary");
-const fs = require("fs");
-const path = require("path");
-const sendEmail = require("../utils/sendEmail");
+import Event from "../models/Event.js";
+import Reservation from "../models/Reservation.js";
+import User from "../models/User.js";
+import cloudinary from "../config/cloudinary.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { sendEmail } from "../utils/sendEmail.js";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Load cancellation email template
 const cancellationTemplate = fs.readFileSync(
   path.join(__dirname, "../templates/cancellationTemplate.html"),
-  "utf-8"
+  "utf-8",
 );
 
 // CREATE EVENT (Admin Only)
-exports.createEvent = async (req, res, next) => {
+export const createEvent = async (req, res, next) => {
   try {
     const { title, category, description, date, time, location, maxSeats } =
       req.body;
@@ -42,7 +44,7 @@ exports.createEvent = async (req, res, next) => {
 };
 
 // GET ALL EVENTS
-exports.getEvents = async (req, res, next) => {
+export const getEvents = async (req, res, next) => {
   try {
     const events = await Event.find().populate("category");
     res.json(events);
@@ -52,7 +54,7 @@ exports.getEvents = async (req, res, next) => {
 };
 
 // GET SINGLE EVENT
-exports.getEventById = async (req, res, next) => {
+export const getEventById = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id).populate("category");
 
@@ -69,7 +71,7 @@ exports.getEventById = async (req, res, next) => {
 };
 
 // UPDATE EVENT (Admin Only)
-exports.updateEvent = async (req, res, next) => {
+export const updateEvent = async (req, res, next) => {
   try {
     const imageUrl = req.file ? req.file.path : undefined;
     const imagePublicId = req.file ? req.file.filename : undefined;
@@ -97,7 +99,7 @@ exports.updateEvent = async (req, res, next) => {
 };
 
 // DELETE EVENT (Admin Only)
-exports.deleteEvent = async (req, res, next) => {
+export const deleteEvent = async (req, res, next) => {
   try {
     const id = req.params.id;
 
@@ -108,7 +110,6 @@ exports.deleteEvent = async (req, res, next) => {
       return next(err);
     }
 
- 
     if (event.imagePublicId) {
       await cloudinary.uploader.destroy(event.imagePublicId);
     }

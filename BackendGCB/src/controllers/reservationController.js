@@ -1,10 +1,10 @@
-const sendEmail = require("../utils/sendEmail");
-const User = require("../models/User");
-const Reservation = require("../models/Reservation");
-const Event = require("../models/Event");
+import { sendEmail } from "../utils/sendEmail.js";
+import User from "../models/User.js";
+import Reservation from "../models/Reservation.js";
+import Event from "../models/Event.js";
 
 // BOOK AN EVENT
-exports.bookEvent = async (req, res, next) => {
+export const bookEvent = async (req, res, next) => {
   try {
     const { eventId } = req.body;
     const userId = req.user.id;
@@ -61,7 +61,7 @@ exports.bookEvent = async (req, res, next) => {
 };
 
 // GET USER BOOKINGS
-exports.getMyBookings = async (req, res, next) => {
+export const getMyBookings = async (req, res, next) => {
   try {
     const bookings = await Reservation.find({ user: req.user.id }).populate(
       "event"
@@ -74,7 +74,7 @@ exports.getMyBookings = async (req, res, next) => {
 };
 
 // CANCEL BOOKING
-exports.cancelBooking = async (req, res, next) => {
+export const cancelBooking = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
 

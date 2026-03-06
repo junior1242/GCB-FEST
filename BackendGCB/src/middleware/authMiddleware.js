@@ -1,8 +1,7 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-// PROTECT: Only logged-in users
-exports.protect = async (req, res, next) => {
+export const protect = async (req, res, next) => {
   try {
     let token;
 
@@ -19,10 +18,8 @@ exports.protect = async (req, res, next) => {
       return next(err);
     }
 
-    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user to request (without password)
     const user = await User.findById(decoded.id).select("-password");
     if (!user) {
       const err = new Error("User not found for this token");
@@ -45,7 +42,7 @@ exports.protect = async (req, res, next) => {
 };
 
 // ADMIN ONLY
-exports.adminOnly = (req, res, next) => {
+export const adminOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "admin") {
     const err = new Error("Admin access only");
     err.statusCode = 403;

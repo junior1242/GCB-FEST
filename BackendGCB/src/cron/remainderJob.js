@@ -1,10 +1,10 @@
-const cron = require("node-cron");
-const Event = require("../models/Event");
-const Reservation = require("../models/Reservation");
-const User = require("../models/User");
-const fs = require("fs");
-const path = require("path");
-const sendEmail = require("../utils/sendEmail");
+import cron from 'node-cron';
+import Event from "../models/Event.js";
+import Reservation from "../models/Reservation.js";
+import User from "../models/User.js";
+import fs from "fs";
+import path from "path";
+import { sendEmail } from "../utils/sendEmail.js";
 
 // Load reminder HTML template
 const templatePath = path.join(__dirname, "../templates/reminderTemplate.html");

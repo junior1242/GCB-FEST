@@ -1,7 +1,7 @@
-const Category = require("../models/Category");
+import Category from "../models/Category.js";
 
 // CREATE CATEGORY (Admin Only)
-exports.createCategory = async (req, res, next) => {
+export const createCategory = async (req, res, next) => {
   try {
     const { name } = req.body;
 
@@ -22,7 +22,7 @@ exports.createCategory = async (req, res, next) => {
 };
 
 // GET ALL CATEGORIES
-exports.getCategories = async (req, res, next) => {
+export const getCategories = async (req, res, next) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
 
@@ -33,7 +33,7 @@ exports.getCategories = async (req, res, next) => {
 };
 
 // UPDATE CATEGORY (Admin Only)
-exports.updateCategory = async (req, res, next) => {
+export const updateCategory = async (req, res, next) => {
   try {
     const id = req.params.id;
     const { name } = req.body;
@@ -41,7 +41,7 @@ exports.updateCategory = async (req, res, next) => {
     const category = await Category.findByIdAndUpdate(
       id,
       { name },
-      { new: true }
+      { new: true },
     );
 
     if (!category) {
@@ -57,7 +57,7 @@ exports.updateCategory = async (req, res, next) => {
 };
 
 // DELETE CATEGORY (Admin Only)
-exports.deleteCategory = async (req, res, next) => {
+export const deleteCategory = async (req, res, next) => {
   try {
     const id = req.params.id;
 

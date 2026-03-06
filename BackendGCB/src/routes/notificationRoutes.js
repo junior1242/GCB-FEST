@@ -1,13 +1,8 @@
-const express = require("express");
+// const express = require("express");
+import express from "express";
 const router = express.Router();
-
-const {
-  sendNotification,
-  getMyNotifications,
-  markAsRead,
-} = require("../controllers/notificationController");
-
-const { protect, adminOnly } = require("../middleware/authMiddleware");
+import { sendNotification,getMyNotifications,markAsRead } from "../controllers/notificationController.js"; 
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 // SEND NOTIFICATION (Admin only)
 router.post("/", protect, adminOnly, sendNotification);
@@ -18,4 +13,4 @@ router.get("/my", protect, getMyNotifications);
 // MARK AS READ
 router.put("/read/:id", protect, markAsRead);
 
-module.exports = router;
+export default router;

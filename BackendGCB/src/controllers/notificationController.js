@@ -1,8 +1,8 @@
-const Notification = require("../models/Notification");
-const User = require("../models/User");
+import Notification from "../models/Notification.js";
+import User from "../models/User.js";
 
 // SEND NOTIFICATION (ADMIN)
-exports.sendNotification = async (req, res, next) => {
+export const sendNotification = async (req, res, next) => {
   try {
     const { title, message, userId } = req.body;
 
@@ -60,7 +60,7 @@ exports.sendNotification = async (req, res, next) => {
 };
 
 // GET MY NOTIFICATIONS (STUDENT)
-exports.getMyNotifications = async (req, res, next) => {
+export const getMyNotifications = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
@@ -75,7 +75,7 @@ exports.getMyNotifications = async (req, res, next) => {
 };
 
 // MARK AS READ
-exports.markAsRead = async (req, res, next) => {
+export const markAsRead = async (req, res, next) => {
   try {
     const notifId = req.params.id;
 

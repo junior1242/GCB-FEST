@@ -1,6 +1,6 @@
-const cron = require("node-cron");
-const Event = require("../models/Event");
-const Reservation = require("../models/Reservation");
+import Event from "../models/Event.js";
+import Reservation from "../models/Reservation.js";
+import cron from "node-cron";
 
 cron.schedule("0 0 * * *", async () => {
   console.log("Running daily auto-delete old events job...");

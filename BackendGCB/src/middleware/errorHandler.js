@@ -1,5 +1,5 @@
-const errorHandler = (err, req, res, next) => {
-  console.error("🔥 Error:", err.message);
+export const errorHandler = (err, req, res, next) => {
+  console.error("Error:", err.message);
 
   const statusCode = err.statusCode || 500;
 
@@ -8,5 +8,3 @@ const errorHandler = (err, req, res, next) => {
     message: err.message || "Something went wrong",
   });
 };
-
-module.exports = errorHandler;
