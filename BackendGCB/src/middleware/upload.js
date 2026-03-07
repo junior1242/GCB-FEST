@@ -1,14 +1,13 @@
-import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "../config/cloudinary.js";
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import cloudinary from '../config/cloudinary.js'; // Import your config above
 
 const storage = new CloudinaryStorage({
-  cloudinary,
+  cloudinary: cloudinary,
   params: {
-    folder: "event_images", 
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    folder: 'events',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
   },
 });
 
-export const upload = multer({ storage });
-
+export const upload = multer({ storage: storage });

@@ -145,3 +145,12 @@ export const login = async (req, res, next) => {
     next(error);
   }
 };
+// Backend: Get all students (Admin Only)
+export const getAllStudents = async (req, res, next) => {
+  try {
+    const students = await User.find({ role: "student" }).select("-password");
+    res.json(students);
+  } catch (error) {
+    next(error);
+  }
+};
