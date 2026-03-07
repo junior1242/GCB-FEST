@@ -1,6 +1,6 @@
-import API from "./axios";
+import apiClient from "./apiClient";
 
-export const loginUser = (data) => API.post("/auth/login", data);
-export const registerUser = (data) => API.post("/auth/register", data);
-export const verifyEmail = (token) => API.get(`/auth/verify-email/${token}`);
-export const getProfile = () => API.get("/auth/me");
+export const loginUser = (data) => apiClient.post("/auth/login", data);
+export const registerUser = (data) => apiClient.post("/auth/register", data);
+export const verifyEmail = (token) => apiClient.get(`/auth/verify-email/${token}`);
+export const getProfile = () => apiClient.get("/auth/me");

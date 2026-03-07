@@ -1,95 +1,65 @@
-import { sendEmail } from "../utils/sendEmail.js";
-import User from "../models/User.js";
 import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
 
-// BOOK AN EVENT
-export const bookEvent = async (req, res, next) => {
+// @desc    Register a student for an event
+// @route   POST /api/reservations/register
+export const createReservation = async (req, res, next) => {
   try {
     const { eventId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?._id || req.user?.id;
 
-    // 1️⃣ Check if event exists
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+
+    // 1. Check if event exists
     const event = await Event.findById(eventId);
-    if (!event) {
-      const err = new Error("Event not found");
-      err.statusCode = 404;
-      return next(err);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    // 2. Check if student is already registered
+    const existing = await Reservation.findOne({ event: eventId, user: userId });
+    if (existing) {
+      return res.status(400).json({ message: "You are already registered for this event" });
     }
 
-    // 2️⃣ Check seat availability
-    const totalBookings = await Reservation.countDocuments({ event: eventId });
-    if (totalBookings >= event.maxSeats) {
-      const err = new Error("Event is fully booked");
-      err.statusCode = 400;
-      return next(err);
+    // 3. Check seat availability
+    const count = await Reservation.countDocuments({ event: eventId });
+    if (count >= event.maxSeats) {
+      return res.status(400).json({ message: "This event is fully booked" });
     }
 
-    // 3️⃣ Prevent double booking
-    const alreadyBooked = await Reservation.findOne({
-      user: userId,
-      event: eventId,
-    });
-    if (alreadyBooked) {
-      const err = new Error("You already booked this event");
-      err.statusCode = 400;
-      return next(err);
-    }
-
-    // 4️⃣ Create reservation
-    const reservation = await Reservation.create({
-      user: userId,
-      event: eventId,
+    // 4. Create Reservation
+    const reservation = await Reservation.create({ 
+      event: eventId, 
+      user: userId 
     });
 
-    const user = await User.findById(userId);
-
-    // 5️⃣ Send booking email
-    await sendEmail(
-      user.email,
-      "Event Booking Confirmation",
-      `You have successfully booked your seat for: ${event.title}`
-    );
-
-    res.status(201).json({
-      message: "Event booked successfully",
-      reservation,
+    res.status(201).json({ 
+      message: "Successfully registered!", 
+      reservation 
     });
+
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Already registered" });
+    }
     next(error);
   }
 };
 
-// GET USER BOOKINGS
-export const getMyBookings = async (req, res, next) => {
+// @desc    Get all reservations for the logged-in student
+// @route   GET /api/reservations/my-bookings
+// THIS IS THE MISSING EXPORT
+export const getMyReservations = async (req, res, next) => {
   try {
-    const bookings = await Reservation.find({ user: req.user.id }).populate(
-      "event"
-    );
+    const userId = req.user?._id || req.user?.id;
 
-    res.json(bookings);
-  } catch (error) {
-    next(error);
-  }
-};
+    // Find reservations and "populate" the event details so we see titles, dates, etc.
+    const reservations = await Reservation.find({ user: userId })
+      .populate("event")
+      .sort("-createdAt"); // Show newest first
 
-// CANCEL BOOKING
-export const cancelBooking = async (req, res, next) => {
-  try {
-    const bookingId = req.params.id;
-
-    const reservation = await Reservation.findOneAndDelete({
-      _id: bookingId,
-      user: req.user.id,
-    });
-
-    if (!reservation) {
-      const err = new Error("Booking not found");
-      err.statusCode = 404;
-      return next(err);
-    }
-
-    res.json({ message: "Booking cancelled successfully" });
+    res.status(200).json(reservations);
   } catch (error) {
     next(error);
   }

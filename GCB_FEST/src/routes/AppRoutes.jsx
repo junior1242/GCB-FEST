@@ -8,6 +8,10 @@ import AuthLayout from "../layouts/AuthLayout";
 import MainLayout from "../layouts/MainLayout";
 import VerifyEmail from "../pages/auth/VerifyEmail";
 import ManageEvents from "../pages/admin/ManageEvents";
+import MyBookings from "../pages/student/MyBookings";
+import StudentProfile from "../pages/student/StudentProfile";
+import AdminStudents from "../pages/admin/AdminStudents";
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
@@ -25,6 +29,9 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<StudentDashboard />} />
             {/* Add these later */}
             <Route path="profile" element={<div>Profile Page</div>} />
+
+            <Route path="my-bookings" element={<MyBookings />} />
+            <Route path="profile" element={<StudentProfile />} />
           </Route>
         </Route>
 
@@ -34,6 +41,8 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<AdminDashboard />} />
             {/* IMPORTANT: Add this for the Admin Manage Events Page */}
             <Route path="events" element={<ManageEvents />} />
+            <Route path="students" element={<AdminStudents />} />
+            
           </Route>
         </Route>
       </Routes>

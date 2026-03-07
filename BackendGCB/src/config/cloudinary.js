@@ -1,5 +1,8 @@
+import { v2 as cloudinary } from 'cloudinary';
+import dotenv from 'dotenv';
 
-import cloudinary from "cloudinary";
+// 1. Force dotenv to load before configuring cloudinary
+dotenv.config(); 
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
