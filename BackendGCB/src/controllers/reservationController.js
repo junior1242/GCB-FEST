@@ -1,66 +1,74 @@
 import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
 
-// @desc    Register a student for an event
-// @route   POST /api/reservations/register
-export const createReservation = async (req, res, next) => {
+// 1. FOR ADMIN: View all registrations (Agenda Item #1)
+export const getAllRegistrations = async (req, res) => {
   try {
-    const { eventId } = req.body;
-    const userId = req.user?._id || req.user?.id;
-
-    if (!userId) {
-      return res.status(401).json({ message: "User not authenticated" });
-    }
-
-    // 1. Check if event exists
-    const event = await Event.findById(eventId);
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    // 2. Check if student is already registered
-    const existing = await Reservation.findOne({ event: eventId, user: userId });
-    if (existing) {
-      return res.status(400).json({ message: "You are already registered for this event" });
-    }
-
-    // 3. Check seat availability
-    const count = await Reservation.countDocuments({ event: eventId });
-    if (count >= event.maxSeats) {
-      return res.status(400).json({ message: "This event is fully booked" });
-    }
-
-    // 4. Create Reservation
-    const reservation = await Reservation.create({ 
-      event: eventId, 
-      user: userId 
-    });
-
-    res.status(201).json({ 
-      message: "Successfully registered!", 
-      reservation 
-    });
-
+    const registrations = await Reservation.find()
+      .populate("event", "title date time location")
+      .populate("user", "name email");
+    res.status(200).json(registrations);
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({ message: "Already registered" });
-    }
-    next(error);
+    res.status(500).json({ message: error.message });
   }
 };
+
+// 2. FOR STUDENT: View "My Bookings" (Agenda Item #2)
+export const getMyBookings = async (req, res) => {
+  try {
+    // req.user.id comes from the login token
+    const bookings = await Reservation.find({ user: req.user.id }).populate("event");
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching bookings" });
+  }
+};
+
+// 3. REGISTRATION LOGIC: Check seats before saving (Agenda Item #4)
+export const createReservation = async (req, res) => {
+  const { eventId } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const event = await Event.findById(eventId);
+    const bookedCount = await Reservation.countDocuments({ event: eventId });
+
+    if (bookedCount >= event.maxSeats) {
+      return res
+        .status(400)
+        .json({ message: "No seats remaining for this event." });
+    }
+
+    const reservation = new Reservation({ event: eventId, user: userId });
+    await reservation.save();
+
+    // We will add the Email trigger here in Step 5 later
+    res.status(201).json({ message: "Successfully registered", reservation });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "You have already registered for this event." });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // @desc    Get all reservations for the logged-in student
 // @route   GET /api/reservations/my-bookings
 // THIS IS THE MISSING EXPORT
-export const getMyReservations = async (req, res, next) => {
-  try {
-    const userId = req.user?._id || req.user?.id;
+// export const getMyReservations = async (req, res, next) => {
+//   try {
+//     const userId = req.user?._id || req.user?.id;
 
-    // Find reservations and "populate" the event details so we see titles, dates, etc.
-    const reservations = await Reservation.find({ user: userId })
-      .populate("event")
-      .sort("-createdAt"); // Show newest first
+//     // Find reservations and "populate" the event details so we see titles, dates, etc.
+//     const reservations = await Reservation.find({ user: userId })
+//       .populate("event")
+//       .sort("-createdAt"); // Show newest first
 
-    res.status(200).json(reservations);
-  } catch (error) {
-    next(error);
-  }
-};
+//     res.status(200).json(reservations);
+//   } catch (error) {
+//     next(error);
+//   }
+// };

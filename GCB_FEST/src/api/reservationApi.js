@@ -9,3 +9,8 @@ export const getMyBookings = async () => {
   const response = await apiClient.get("/reservations/my-bookings");
   return response.data;
 };
+
+export const getAllRegistrations = async () => {
+  const response = await apiClient.get("/reservations/admin/all");
+  return response.data;
+};

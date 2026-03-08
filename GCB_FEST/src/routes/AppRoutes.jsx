@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
-import StudentDashboard from "../pages/dashboard/StudentDashboard";
-import AdminDashboard from "../pages/dashboard/AdminDashboard";
+import StudentDashboard from "../pages/student/StudentDashboard";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 import ProtectedRoute from "./ProtectedRoute";
 import AuthLayout from "../layouts/AuthLayout";
 import MainLayout from "../layouts/MainLayout";
@@ -11,6 +11,9 @@ import ManageEvents from "../pages/admin/ManageEvents";
 import MyBookings from "../pages/student/MyBookings";
 import StudentProfile from "../pages/student/StudentProfile";
 import AdminStudents from "../pages/admin/AdminStudents";
+
+// 1. IMPORT THE NEW PAGE HERE
+import AdminRegistrations from "../pages/admin/AdminRegistrations";
 
 export default function AppRoutes() {
   return (
@@ -27,9 +30,6 @@ export default function AppRoutes() {
         <Route path="/student" element={<ProtectedRoute role="student" />}>
           <Route element={<MainLayout />}>
             <Route path="dashboard" element={<StudentDashboard />} />
-            {/* Add these later */}
-            <Route path="profile" element={<div>Profile Page</div>} />
-
             <Route path="my-bookings" element={<MyBookings />} />
             <Route path="profile" element={<StudentProfile />} />
           </Route>
@@ -39,10 +39,11 @@ export default function AppRoutes() {
         <Route path="/admin" element={<ProtectedRoute role="admin" />}>
           <Route element={<MainLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
-            {/* IMPORTANT: Add this for the Admin Manage Events Page */}
             <Route path="events" element={<ManageEvents />} />
             <Route path="students" element={<AdminStudents />} />
-            
+
+            {/* 2. ADD THIS ROUTE FOR ADMIN REGISTRATIONS */}
+            <Route path="registrations" element={<AdminRegistrations />} />
           </Route>
         </Route>
       </Routes>
