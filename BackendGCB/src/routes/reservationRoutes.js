@@ -1,10 +1,18 @@
 import express from "express";
-const router = express.Router();
-import { createReservation, getMyReservations } from "../controllers/reservationController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import {
+  createReservation,
+  getAllRegistrations,
+  getMyBookings,
+} from "../controllers/reservationController.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
-// Use protect middleware so req.user is available
+const router = express.Router();
+
+// Student routes
 router.post("/register", protect, createReservation);
-router.get("/my-bookings", protect, getMyReservations);
+router.get("/my-bookings", protect, getMyBookings);
+
+// Admin route
+router.get("/admin/all", protect, adminOnly, getAllRegistrations);
 
 export default router;

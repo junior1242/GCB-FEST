@@ -53,6 +53,28 @@ export const getEvents = async (req, res, next) => {
   }
 };
 
+// @desc Get all events with remaining seats count
+export const getAllEvents = async (req, res) => {
+  try {
+    const events = await Event.find().populate("category", "name");
+
+    // Calculate remaining seats for each event
+    const eventsWithSeats = await Promise.all(
+      events.map(async (event) => {
+        const bookedCount = await Reservation.countDocuments({ event: event._id });
+        return {
+          ...event._doc,
+          remainingSeats: event.maxSeats - bookedCount,
+        };
+      })
+    );
+
+    res.status(200).json(eventsWithSeats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET SINGLE EVENT
 export const getEventById = async (req, res, next) => {
   try {

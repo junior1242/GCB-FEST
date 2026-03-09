@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -10,7 +10,6 @@ import {
 import { jwtDecode } from "jwt-decode"; // You might need: npm install jwt-decode
 
 export default function MainLayout() {
-  const navigate = useNavigate();
   const location = useLocation();
 
   // Get user info from token
@@ -30,6 +29,7 @@ export default function MainLayout() {
           },
           { name: "Manage Events", path: "/admin/events", icon: Calendar },
           { name: "Students List", path: "/admin/students", icon: Users },
+          { name: "Registrations", path: "/admin/registrations", icon: Users },
         ]
       : [
           {
@@ -47,7 +47,9 @@ export default function MainLayout() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/");
+    localStorage.removeItem("user");
+    // cookieStore.removeItem()
+    window.location.replace("/");
   };
 
   return (
