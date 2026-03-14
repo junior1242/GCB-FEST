@@ -6,21 +6,17 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 export default function VerifyEmail() {
   const { token } = useParams();
   const [status, setStatus] = useState("loading");
-  const hasCalled = useRef(false); // 1. Create a "lock"
-
+  const hasCalled = useRef(false); 
   useEffect(() => {
-    // 2. If we already called the API, don't do it again
+
     if (hasCalled.current) return;
     hasCalled.current = true;
 
     const confirmEmail = async () => {
       try {
-        // Use your actual backend URL here
         await axios.get(`http://localhost:8081/api/auth/verify-email/${token}`);
         setStatus("success");
       } catch (err) {
-        // If the user is already verified, we can treat it as success
-        // OR just show the error if it's truly a bad link
         console.log(err.response?.data);
         setStatus("error");
       }

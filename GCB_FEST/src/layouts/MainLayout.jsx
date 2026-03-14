@@ -1,3 +1,4 @@
+
 import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -7,48 +8,38 @@ import {
   Bell,
   UserCircle,
 } from "lucide-react";
-import { jwtDecode } from "jwt-decode"; // You might need: npm install jwt-decode
+import { jwtDecode } from "jwt-decode"; 
 
 export default function MainLayout() {
   const location = useLocation();
 
-  // Get user info from token
   const token = localStorage.getItem("token");
-  let user = { role: "student" }; // Default
+  let user = { role: "student" }; 
   if (token) {
-    user = jwtDecode(token); // Decodes the ID and Role from your JWT
+    user = jwtDecode(token); 
   }
 
   const menuItems =
     user.role === "admin"
       ? [
-          {
-            name: "Admin Panel",
-            path: "/admin/dashboard",
-            icon: LayoutDashboard,
-          },
+          // {
+          //   name: "Admin Panel",
+          //   path: "/admin/dashboard",
+          //   icon: LayoutDashboard,
+          // },
           { name: "Manage Events", path: "/admin/events", icon: Calendar },
           { name: "Students List", path: "/admin/students", icon: Users },
           { name: "Registrations", path: "/admin/registrations", icon: Users },
         ]
       : [
-          {
-            name: "Events Feed",
-            path: "/student/dashboard",
-            icon: LayoutDashboard,
-          },
-          {
-            name: "My Registrations",
-            path: "/student/my-bookings",
-            icon: Calendar,
-          },
+          { name: "Events Feed",path: "/student/dashboard",icon: LayoutDashboard },
+          {name: "My Registrations",path: "/student/my-bookings",icon: Calendar },
           { name: "My Profile", path: "/student/profile", icon: UserCircle },
         ];
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    // cookieStore.removeItem()
     window.location.replace("/");
   };
 

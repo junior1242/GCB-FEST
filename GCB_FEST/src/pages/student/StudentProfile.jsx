@@ -1,6 +1,24 @@
 import { User, Mail, GraduationCap, Hash, BookOpen } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getProfile } from "../../api/authApi";
 
 export default function StudentProfile() {
+  const [profileList, setProfileList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    getProfile()
+      .then((data) => {
+        console.log("API Response Data:", data); 
+        const profileData = data.user || data.data || data; 
+        setProfileList(Array.isArray(profileData) ? profileData : [profileData]);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching profile:", err);
+        setLoading(false);
+      });
+  }, []);
+  if (loading) return <div className="text-center text-white mt-10">Loading...</div>;
   return (
     <div className="text-white max-w-3xl mx-auto">
       <h1 className="text-4xl font-bold mb-8 text-center">Your Profile</h1>
@@ -12,11 +30,18 @@ export default function StudentProfile() {
         </div>
 
         <div className="space-y-6">
-          <ProfileItem icon={<User />} label="Full Name" value="Loading..." />
-          <ProfileItem icon={<Mail />} label="Email" value="Loading..." />
-          <ProfileItem icon={<Hash />} label="Roll Number" value="Loading..." />
-          <ProfileItem icon={<BookOpen />} label="Department" value="Loading..." />
-          <ProfileItem icon={<GraduationCap />} label="Semester" value="Loading..." />
+          {/* 2. Map over profileList (the state variable) */}
+          {profileList.map((student, index) => (
+            <div key={index} className="space-y-6"> 
+              <ProfileItem icon={<User />} label="Full Name" value={student.name} />
+              <ProfileItem icon={<Mail />} label="Email" value={student.email} />
+              <ProfileItem icon={<Hash />} label="Roll Number" value={student.rollNumber} />
+              <ProfileItem icon={<BookOpen />} label="Department" value={student.department} />
+              <ProfileItem icon={<GraduationCap />} label="Semester" value={student.semester} />
+            </div>            
+          ))}
+          
+          {profileList.length === 0 && <p className="text-center text-slate-400">No profile data found.</p>}
         </div>
       </div>
     </div>
@@ -29,7 +54,7 @@ function ProfileItem({ icon, label, value }) {
       <div className="text-blue-500">{icon}</div>
       <div>
         <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">{label}</p>
-        <p className="text-slate-200 font-semibold">{value}</p>
+        <p className="text-slate-200 font-semibold">{value || "N/A"}</p>
       </div>
     </div>
   );
