@@ -13,7 +13,7 @@ export const sendEmail = async (options) => {
   // 2. Define email options
   const mailOptions = {
     from: `"Student Portal" <${process.env.EMAIL_USER}>`,
-    to: options.email,
+    bcc: options.email,
     subject: options.subject,
     html: options.message, // We use 'html' instead of 'text' for the link to work
   };

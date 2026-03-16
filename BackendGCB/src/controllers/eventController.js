@@ -1,3 +1,5 @@
+import { cancellationTemplate } from "../utils/emailTemplates.js"; 
+import { sendEmail } from "../utils/sendEmail.js"; 
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
 import User from "../models/User.js";
@@ -5,16 +7,11 @@ import cloudinary from "../config/cloudinary.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { sendEmail } from "../utils/sendEmail.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const cancellationTemplate = fs.readFileSync(
-  path.join(__dirname, "../templates/cancellationTemplate.html"),
-  "utf-8",
-);
-
 // CREATE EVENT (Admin Only)
+
 export const createEvent = async (req, res, next) => {
   try {
     const { title, category, description, date, time, location, maxSeats } =
@@ -75,7 +72,6 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
-// GET SINGLE EVENT
 export const getEventById = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id).populate("category");
@@ -92,7 +88,7 @@ export const getEventById = async (req, res, next) => {
   }
 };
 
-// UPDATE EVENT (Admin Only)
+
 export const updateEvent = async (req, res, next) => {
   try {
     const imageUrl = req.file ? req.file.path : undefined;
@@ -120,11 +116,13 @@ export const updateEvent = async (req, res, next) => {
   }
 };
 
-// DELETE EVENT (Admin Only)
+
+
 export const deleteEvent = async (req, res, next) => {
   try {
     const id = req.params.id;
 
+    // 1. Find the event
     const event = await Event.findById(id);
     if (!event) {
       const err = new Error("Event not found");
@@ -132,30 +130,42 @@ export const deleteEvent = async (req, res, next) => {
       return next(err);
     }
 
+    // 2. Find all reservations to get student names and emails
+    const reservations = await Reservation.find({ event: id }).populate("user");
+
+    // 3. Process the emails
+    const emailPromises = reservations.map((booking) => {
+      if (booking.user && booking.user.email) {
+        // Prepare the personalized HTML for this specific student
+        const personalizedHtml = cancellationTemplate
+          .replace("{{name}}", booking.user.name)
+          .replace("{{eventTitle}}", event.title)
+          .replace("{{eventDate}}", new Date(event.date).toDateString());
+
+        // Call your sendEmail function with the object it expects
+        return sendEmail({
+          email: booking.user.email,
+          subject: "Event Cancellation Notice",
+          message: personalizedHtml,
+        });
+      }
+    });
+
+    // Send all emails in parallel
+    await Promise.allSettled(emailPromises);
+
+    // 4. Clean up Cloudinary and DB
     if (event.imagePublicId) {
       await cloudinary.uploader.destroy(event.imagePublicId);
     }
 
-    const reservations = await Reservation.find({ event: id }).populate("user");
-
-    for (let booking of reservations) {
-      const html = cancellationTemplate
-        .replace("{{name}}", booking.user.name)
-        .replace("{{eventTitle}}", event.title)
-        .replace("{{eventDate}}", event.date);
-
-      await sendEmail(booking.user.email, "Event Cancellation Notice", html);
-    }
-
-    //  Remove event
+    await Reservation.deleteMany({ event: id });
     await Event.findByIdAndDelete(id);
 
-    //  Remove all bookings
-    await Reservation.deleteMany({ event: id });
-
     res.json({
-      message: "Event deleted, image removed, emails sent",
+      message: "Event deleted and students notified successfully.",
     });
+
   } catch (error) {
     next(error);
   }
