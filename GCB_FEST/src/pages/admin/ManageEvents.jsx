@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getEvents, createEvent, deleteEvent } from "../../api/eventApi";
-import { getCategories, createCategory } from "../../api/categoryApi"; // Added createCategory
+import { getCategories, createCategory } from "../../api/categoryApi"; 
 import { Plus, Trash2, Image as ImageIcon, X, Loader2, Tag, Calendar, MapPin, Hash } from "lucide-react";
 import toast from "react-hot-toast";
 

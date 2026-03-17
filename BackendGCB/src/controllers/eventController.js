@@ -1,5 +1,5 @@
-import { cancellationTemplate } from "../utils/emailTemplates.js"; 
-import { sendEmail } from "../utils/sendEmail.js"; 
+import { cancellationTemplate } from "../utils/deleteEventEmailTemplates.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
 import User from "../models/User.js";
@@ -58,12 +58,14 @@ export const getAllEvents = async (req, res) => {
     // Calculate remaining seats for each event
     const eventsWithSeats = await Promise.all(
       events.map(async (event) => {
-        const bookedCount = await Reservation.countDocuments({ event: event._id });
+        const bookedCount = await Reservation.countDocuments({
+          event: event._id,
+        });
         return {
           ...event._doc,
           remainingSeats: event.maxSeats - bookedCount,
         };
-      })
+      }),
     );
 
     res.status(200).json(eventsWithSeats);
@@ -87,7 +89,6 @@ export const getEventById = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const updateEvent = async (req, res, next) => {
   try {
@@ -115,8 +116,6 @@ export const updateEvent = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 export const deleteEvent = async (req, res, next) => {
   try {
@@ -165,7 +164,6 @@ export const deleteEvent = async (req, res, next) => {
     res.json({
       message: "Event deleted and students notified successfully.",
     });
-
   } catch (error) {
     next(error);
   }
