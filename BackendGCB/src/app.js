@@ -6,6 +6,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import reservationRoutes from "./routes/reservationRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 const app = express();
 
 app.use(
@@ -23,5 +24,6 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/reservations", reservationRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;

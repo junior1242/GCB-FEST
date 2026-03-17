@@ -45,7 +45,7 @@ export default function StudentDashboard() {
       const res = await registerForEvent(eventId);
       toast.success(res.message || "Successfully registered!");
 
-      // Close modal and refresh list to update seat count
+
       setSelectedEvent(null);
       loadEvents();
     } catch (err) {
@@ -139,7 +139,7 @@ export default function StudentDashboard() {
 
             <div className="flex flex-col md:flex-row">
               {/* Image Side */}
-              <div className="md:w-1/2 h-64 md:h-auto overflow-hidden">
+              <div className="md:w-1/3 h-64 md:h-auto overflow-hidden">
                 <img
                   src={selectedEvent.image}
                   className="w-full h-full object-cover"
