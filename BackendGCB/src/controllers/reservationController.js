@@ -1,5 +1,5 @@
 import {sendEmail} from "../utils/sendEmail.js";
-import { registrationTemplate } from "../utils/registerEventTemplate.js";
+import { registrationTemplate } from "../templates/registerEventTemplate.js";
 import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
