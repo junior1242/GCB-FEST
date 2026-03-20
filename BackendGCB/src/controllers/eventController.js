@@ -1,4 +1,5 @@
-import { cancellationTemplate } from "../utils/deleteEventEmailTemplates.js";
+import { cancellationTemplate } from "../templates/deleteEventEmailTemplates.js";
+import { getNewEventTemplate } from "../templates/newEventTemplate.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
@@ -21,6 +22,7 @@ export const createEvent = async (req, res, next) => {
     const imageUrl = req.file ? req.file.path : null;
     const imagePublicId = req.file ? req.file.filename : null;
 
+    // 1. Create the event in the Database
     const event = await Event.create({
       title,
       category,
@@ -34,7 +36,30 @@ export const createEvent = async (req, res, next) => {
       createdBy: req.user.id,
     });
 
-    res.status(201).json({ message: "Event created", event });
+    const students = await User.find({ role: "student" }).select("email");
+    const emailList = students.map((s) => s.email);
+    if (emailList.length > 0) {
+      const html = getNewEventTemplate({
+        title: event.title,
+        date: event.date,
+        time: event.time,
+        location: event.location,
+        description: event.description,
+      });
+
+      // Send to all students using BCC for privacy
+      // We don't 'await' this so the Admin doesn't have to wait for 100s of emails to send
+      sendEmail({
+        email: emailList,
+        subject: `New Event: ${event.title}`,
+        message: html,
+      }).catch((err) => console.error("Broadcast Email Error:", err));
+    }
+
+    // 4. Send Immediate Response to Admin
+    res
+      .status(201)
+      .json({ message: "Event created and students notified", event });
   } catch (error) {
     next(error);
   }
@@ -136,16 +161,17 @@ export const deleteEvent = async (req, res, next) => {
     const emailPromises = reservations.map((booking) => {
       if (booking.user && booking.user.email) {
         // Prepare the personalized HTML for this specific student
-        const personalizedHtml = cancellationTemplate
-          .replace("{{name}}", booking.user.name)
-          .replace("{{eventTitle}}", event.title)
-          .replace("{{eventDate}}", new Date(event.date).toDateString());
+        const html = cancellationTemplate({
+          name: booking.user.name,
+          eventTitle: event.title,
+          eventDate: new Date(event.date).toDateString(),
+        })
 
-        // Call your sendEmail function with the object it expects
+  
         return sendEmail({
           email: booking.user.email,
           subject: "Event Cancellation Notice",
-          message: personalizedHtml,
+          message: html,
         });
       }
     });
