@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
+import { Link, useLocation, Outlet} from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -14,7 +14,7 @@ import { jwtDecode } from "jwt-decode";
 
 export default function MainLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Close mobile menu when route changes
@@ -35,14 +35,31 @@ export default function MainLayout() {
   const menuItems =
     user.role === "admin"
       ? [
-          { name: "Admin Panel", path: "/admin/dashboard", icon: LayoutDashboard },
+          {
+            name: "Admin Panel",
+            path: "/admin/dashboard",
+            icon: LayoutDashboard,
+          },
           { name: "Manage Events", path: "/admin/events", icon: Calendar },
           { name: "Students List", path: "/admin/students", icon: Users },
           { name: "Registrations", path: "/admin/registrations", icon: Users },
+          {
+            name: "Pending Verifications",
+            path: "/admin/pending-students",
+            icon: Users,
+          },
         ]
       : [
-          { name: "Events Feed", path: "/student/dashboard", icon: LayoutDashboard },
-          { name: "My Registrations", path: "/student/my-bookings", icon: Calendar },
+          {
+            name: "Events Feed",
+            path: "/student/dashboard",
+            icon: LayoutDashboard,
+          },
+          {
+            name: "My Registrations",
+            path: "/student/my-bookings",
+            icon: Calendar,
+          },
           { name: "My Profile", path: "/student/profile", icon: UserCircle },
         ];
 
@@ -54,21 +71,22 @@ export default function MainLayout() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 flex overflow-x-hidden">
-      
       {/* 1. MOBILE OVERLAY (Darkens screen when menu is open) */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50] md:hidden transition-opacity"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
 
       {/* 2. SIDEBAR */}
-      <aside className={`
+      <aside
+        className={`
         fixed inset-y-0 left-0 z-[60] w-64 bg-slate-900 border-r border-white/5 p-6 flex flex-col transition-transform duration-300 ease-in-out
         ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"} 
         md:translate-x-0
-      `}>
+      `}
+      >
         {/* Logo Section */}
         <div className="mb-10 flex items-center justify-between">
           <div>
@@ -80,7 +98,10 @@ export default function MainLayout() {
             </p>
           </div>
           {/* Close button for mobile only */}
-          <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400">
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden text-slate-400"
+          >
             <X size={24} />
           </button>
         </div>
@@ -118,12 +139,10 @@ export default function MainLayout() {
 
       {/* 3. MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 md:ml-64 transition-all duration-300">
-        
         {/* RESPONSIVE HEADER */}
         <header className="h-16 border-b border-white/5 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-40">
-          
           {/* Mobile Hamburger Toggle */}
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-2 text-slate-400 hover:bg-white/5 rounded-lg md:hidden"
           >
@@ -136,13 +155,13 @@ export default function MainLayout() {
           {/* User Section */}
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline text-xs text-slate-400 uppercase tracking-wide italic">
-             
-              Welcome back, <span className="text-slate-200 font-medium">{user.role}</span>
+              Welcome back,{" "}
+              <span className="text-slate-200 font-medium">{user.role}</span>
             </span>
             <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-500 border border-white/10 shadow-inner p-[2px]">
-                <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-[10px] font-bold">
-                    {user.role?.[0].toUpperCase()}
-                </div>
+              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-[10px] font-bold">
+                {user.role?.[0].toUpperCase()}
+              </div>
             </div>
           </div>
         </header>

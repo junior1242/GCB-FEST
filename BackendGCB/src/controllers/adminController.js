@@ -38,3 +38,24 @@ export const getAdminStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const getUnverifiedStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: "student", isVerified: false })
+      .select("name email createdAt")
+      .sort({ createdAt: -1 });
+    res.status(200).json(students);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const verifyStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndUpdate(id, { isVerified: true });
+    res.status(200).json({ message: "Student verified successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

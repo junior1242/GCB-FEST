@@ -11,9 +11,9 @@ import ManageEvents from "../pages/admin/ManageEvents";
 import MyBookings from "../pages/student/MyBookings";
 import StudentProfile from "../pages/student/StudentProfile";
 import AdminStudents from "../pages/admin/AdminStudents";
+import AdminRegistrations from "../pages/admin/AdminRegistrations"; // NEW IMPORT
+import PendingStudents from "../pages/admin/PendingStudents"; // NEW IMPORT
 
-// 1. IMPORT THE NEW PAGE HERE
-import AdminRegistrations from "../pages/admin/AdminRegistrations";
 
 export default function AppRoutes() {
   return (
@@ -44,6 +44,7 @@ export default function AppRoutes() {
 
             {/* 2. ADD THIS ROUTE FOR ADMIN REGISTRATIONS */}
             <Route path="registrations" element={<AdminRegistrations />} />
+            <Route path="pending-students" element={<PendingStudents />} />
           </Route>
         </Route>
       </Routes>
