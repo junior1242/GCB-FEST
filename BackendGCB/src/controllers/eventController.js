@@ -56,7 +56,6 @@ export const createEvent = async (req, res, next) => {
       }).catch((err) => console.error("Broadcast Email Error:", err));
     }
 
-    // 4. Send Immediate Response to Admin
     res
       .status(201)
       .json({ message: "Event created and students notified", event });
@@ -65,7 +64,7 @@ export const createEvent = async (req, res, next) => {
   }
 };
 
-// GET ALL EVENTS
+
 export const getEvents = async (req, res, next) => {
   try {
     const events = await Event.find().populate("category");
@@ -75,7 +74,7 @@ export const getEvents = async (req, res, next) => {
   }
 };
 
-// @desc Get all events with remaining seats count
+
 export const getAllEvents = async (req, res) => {
   try {
     const events = await Event.find().populate("category", "name");

@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { getEvents, createEvent, deleteEvent } from "../../api/eventApi";
 import { getCategories, createCategory } from "../../api/categoryApi"; 
-import { Plus, Trash2, Image as ImageIcon, X, Loader2, Tag, Calendar, MapPin } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  X,
+  Loader2,
+  Tag,
+  Calendar,
+  MapPin,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ManageEvents() {
@@ -162,7 +171,7 @@ export default function ManageEvents() {
                       </div>
                     </td>
                     <td className="p-4 md:p-6 text-right">
-                      <button onClick={() => handleDelete(event._id)} className="p-2.5 text-red-400 hover:bg-red-400/10 rounded-xl transition-all md:opacity-0 md:group-hover:opacity-100">
+                      <button onClick={() => handleDelete(event._id)} className="p-2.5 text-red-400 hover:hover:cursor-pointer bg-red-400/10 rounded-xl transition-all md:opacity-0 md:group-hover:opacity-100">
                         <Trash2 size={18} />
                       </button>
                     </td>
