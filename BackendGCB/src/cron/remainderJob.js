@@ -2,24 +2,25 @@ import cron from "node-cron";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { getReminderTemplate } from "../utils/reminderTemplate.js";
+import { getReminderTemplate } from "../templates/reminderTemplate.js";
 
-cron.schedule("0 9 * * *", async () => {
-  console.log("Running: Daily Event Reminder Job...shahid");
+// Runs every day at 00:00 (Midnight)
+cron.schedule("0 0 * * *", async () => {
+  console.log("Running: Daily Event Reminder Job for TODAY...");
 
   try {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const todayString = `${year}-${month}-${day}`;
 
-    const year = tomorrow.getFullYear();
-    const month = String(tomorrow.getMonth() + 1).padStart(2, "0"); 
-    const day = String(tomorrow.getDate()).padStart(2, "0");
-    const tomorrowString = `${year}-${month}-${day}`;
-    console.log(`Searching for events on date: ${tomorrowString}`);
-    const events = await Event.find({ date: tomorrowString });
+    console.log(`Searching for events happening TODAY: ${todayString}`);
+
+    const events = await Event.find({ date: todayString });
 
     if (events.length === 0) {
-      console.log("No events found for:", tomorrowString);
+      console.log("No events scheduled for today:", todayString);
       return;
     }
 
@@ -29,24 +30,23 @@ cron.schedule("0 9 * * *", async () => {
       }).populate("user");
 
       console.log(
-        `Found ${reservations.length} reservations for ${event.title}`,
+        `Found ${reservations.length} students registered for today's event: ${event.title}`,
       );
-
       const emailPromises = reservations.map((booking) => {
         if (!booking.user || !booking.user.email) return Promise.resolve();
 
-        
+
         const html = getReminderTemplate({
           name: booking.user.name,
           eventTitle: event.title,
-          eventDate: event.date, 
-          eventTime: event.time, 
+          eventDate: event.date,
+          eventTime: event.time,
           eventLocation: event.location,
         });
 
         return sendEmail({
           email: booking.user.email,
-          subject: `Reminder: ${event.title} is Tomorrow!`,
+          subject: `Reminder: ${event.title} is Today!`, 
           message: html,
         }).catch((err) =>
           console.error(`Email failed for ${booking.user.email}:`, err),
@@ -56,8 +56,8 @@ cron.schedule("0 9 * * *", async () => {
       await Promise.all(emailPromises);
     }
 
-    console.log("All reminders for tomorrow have been processed.");
+    console.log("-> All today's reminders have been sent successfully.");
   } catch (error) {
-    console.error("Error in Cron Job:", error);
+    console.error("Error in Today's Reminder Cron Job:", error);
   }
 });

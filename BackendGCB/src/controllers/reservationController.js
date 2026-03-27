@@ -4,7 +4,6 @@ import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
 
-// 1. FOR ADMIN: View all registrations (Agenda Item #1)
 export const getAllRegistrations = async (req, res) => {
   try {
     const registrations = await Reservation.find()
@@ -16,10 +15,8 @@ export const getAllRegistrations = async (req, res) => {
   }
 };
 
-// 2. FOR STUDENT: View "My Bookings" (Agenda Item #2)
 export const getMyBookings = async (req, res) => {
   try {
-    // req.user.id comes from the login token
     const bookings = await Reservation.find({ user: req.user.id }).populate(
       "event",
     );
@@ -28,8 +25,6 @@ export const getMyBookings = async (req, res) => {
     res.status(500).json({ message: "Error fetching bookings" });
   }
 };
-
-
 
 export const createReservation = async (req, res) => {
   const { eventId } = req.body;
@@ -49,21 +44,22 @@ export const createReservation = async (req, res) => {
     const reservation = new Reservation({ event: eventId, user: userId });
     await reservation.save();
 
-    // --- PREPARE DATA FOR TEMPLATE ---
-    const dateObj = new Date(event.date);
+  
+    const [hours, minutes] = event.time.split(":");
+    const hourInt = parseInt(hours);
+    const ampm = hourInt >= 12 ? "PM" : "AM";
+    const displayHour = hourInt % 12 || 12; 
+    const formattedTime = `${displayHour}:${minutes} ${ampm}`;
 
+    
     const emailHtml = registrationTemplate({
       name: user.name,
       eventTitle: event.title,
-      eventDate: dateObj.toLocaleDateString(), // e.g. "10/24/2023"
-      eventTime: dateObj.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }), // e.g. "02:00 PM"
+      eventDate: event.date, 
+      eventTime: formattedTime,
       eventLocation: event.location || "Main Campus Hall",
     });
 
-    // --- SEND EMAIL ---
     try {
       await sendEmail({
         email: user.email,
@@ -83,20 +79,3 @@ export const createReservation = async (req, res) => {
   }
 };
 
-// @desc    Get all reservations for the logged-in student
-// @route   GET /api/reservations/my-bookings
-// THIS IS THE MISSING EXPORT
-// export const getMyReservations = async (req, res, next) => {
-//   try {
-//     const userId = req.user?._id || req.user?.id;
-
-//     // Find reservations and "populate" the event details so we see titles, dates, etc.
-//     const reservations = await Reservation.find({ user: userId })
-//       .populate("event")
-//       .sort("-createdAt"); // Show newest first
-
-//     res.status(200).json(reservations);
-//   } catch (error) {
-//     next(error);
-//   }
-// };

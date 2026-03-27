@@ -2,7 +2,7 @@ export const getReminderTemplate = (data) => {
   return `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <h2>Hello, ${data.name}!</h2>
-        <p>This is a friendly reminder that the event you registered for is happening <strong>tomorrow</strong>.</p>
+        <p>This is a friendly reminder that the event you registered for is happening <strong>today</strong>.</p>
         
         <div style="background: #f4f4f4; padding: 15px; border-left: 5px solid #007bff;">
             <p><strong>Event:</strong> ${data.eventTitle}</p>

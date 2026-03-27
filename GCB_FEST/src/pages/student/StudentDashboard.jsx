@@ -119,7 +119,7 @@ export default function StudentDashboard() {
           <div className="bg-slate-900 border border-white/10 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative my-auto">
             <button
               onClick={() => setSelectedEvent(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-2 bg-slate-950/50 rounded-full z-20"
+              className="absolute top-4 right-4 text-slate-400 hover:cursor-pointer text-white p-2 bg-slate-950/50 rounded-full z-20"
             >
               <X size={20} />
             </button>
@@ -178,7 +178,7 @@ export default function StudentDashboard() {
                     registeringId === selectedEvent._id ||
                     selectedEvent.remainingSeats <= 0
                   }
-                  className="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-xl hover:bg-blue-500 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 mt-auto"
+                  className="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-xl hover:cursor-pointer bg-blue-500 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 mt-auto"
                 >
                   {registeringId === selectedEvent._id ? (
                     <Loader2 size={18} className="animate-spin" />

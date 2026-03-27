@@ -4,28 +4,70 @@ import {
   GraduationCap,
   Hash,
   BookOpen,
-  Loader2,
+  Loader2,  
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getProfile } from "../../api/authApi";
+import { getProfile, updateProfile } from "../../api/authApi";
+import toast from "react-hot-toast";
 
 export default function StudentProfile() {
   const [profileList, setProfileList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // States for editing semester
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempSemester, setTempSemester] = useState("");
+  const [updating, setUpdating] = useState(false);
+
   useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = () => {
+    setLoading(true);
     getProfile()
       .then((data) => {
         const profileData = data.user || data.data || data;
-        setProfileList(
-          Array.isArray(profileData) ? profileData : [profileData],
-        );
+        const list = Array.isArray(profileData) ? profileData : [profileData];
+        setProfileList(list);
+        // Initialize temp semester with current value
+        if (list.length > 0) setTempSemester(list[0].semester || "");
         setLoading(false);
       })
       .catch((err) => {
         setLoading(false);
       });
-  }, []);
+  };
+
+  const handleUpdateSemester = async () => {
+    if (!tempSemester) return toast.error("Please select a semester");
+
+    try {
+      setUpdating(true);
+      if (tempSemester < profileList[0].semester) {
+        toast.error(
+          "You can only select a semester equal to or greater than your current semester",
+        );
+        setUpdating(false);
+        return;
+      }
+      await updateProfile({ semester: tempSemester });
+      toast.success("Semester updated successfully!");
+
+      // Update local state so UI refreshes without a full reload
+      setProfileList((prev) =>
+        prev.map((student) => ({ ...student, semester: tempSemester })),
+      );
+      setIsEditing(false);
+    } catch (err) {
+      toast.error("Failed to update semester");
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   if (loading)
     return (
@@ -40,9 +82,9 @@ export default function StudentProfile() {
         Your Profile
       </h1>
 
-      <div className="bg-white/5 border border-white/10 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 backdrop-blur-xl">
+      <div className="bg-white/5 border border-white/10 rounded-4xl md:rounded-[2.5rem] p-6 md:p-10 backdrop-blur-xl">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-500 mb-4 p-1">
+          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-linear-to-tr from-blue-600 to-emerald-500 mb-4 p-1">
             <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
               <User size={30} className="text-white/50" />
             </div>
@@ -75,11 +117,75 @@ export default function StudentProfile() {
                 label="Department"
                 value={student.department}
               />
-              <ProfileItem
-                icon={<GraduationCap size={18} />}
-                label="Semester"
-                value={student.semester}
-              />
+
+              {/* Special Editable Item for Semester */}
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  <div className="text-blue-500 shrink-0">
+                    <GraduationCap size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-500 font-bold">
+                      Semester
+                    </p>
+                    {isEditing ? (
+                      <select
+                        value={tempSemester}
+                        onChange={(e) => setTempSemester(e.target.value)}
+                        className="bg-slate-800 border border-blue-500/50 rounded px-2 py-1 text-sm text-white outline-none w-full mt-1"
+                        autoFocus
+                      >
+                        <option value="" disabled>
+                          Select Semester
+                        </option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                          <option key={num} value={num.toString()}>
+                            {num}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-slate-200 font-semibold truncate text-sm md:text-base">
+                        {student.semester || "N/A"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 ml-4">
+                  {isEditing ? (
+                    <>
+                      <button
+                        onClick={handleUpdateSemester}
+                        disabled={updating}
+                        className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-all"
+                      >
+                        {updating ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Check size={16} />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsEditing(false);
+                          setTempSemester(student.semester);
+                        }}
+                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all"
+                      >
+                        <X size={16} />
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="p-2 text-slate-400 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
 
