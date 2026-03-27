@@ -10,5 +10,12 @@ export const createEvent = async (formData) => {
   return response.data;
 };
 
+export const updateEvent = async (id, formData) => {
+  const { data } = await apiClient.put(`/events/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+};
+
 export const deleteEvent = async (id) =>
   (await apiClient.delete(`/events/${id}`)).data;
