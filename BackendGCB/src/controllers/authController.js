@@ -145,7 +145,8 @@ export const login = async (req, res, next) => {
     next(error);
   }
 };
-// Backend: Get all students (Admin Only)
+
+
 export const getAllStudents = async (req, res, next) => {
   try {
     const students = await User.find({ role: "student" }).select("-password");
@@ -163,7 +164,6 @@ export const getProfile = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    
     res.json(user);
   } catch (error) {
     next(error);
