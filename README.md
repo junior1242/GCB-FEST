@@ -22,6 +22,13 @@ A full-stack event management platform that enables students to discover and reg
 - Cloudinary account
 - Email service credentials
 
+## Clone the Repository
+
+```bash
+git clone https://github.com/junior1242/GCB-FEST.git
+cd GCB-FEST
+```
+
 ## Quick Start
 
 ### Backend
@@ -30,7 +37,9 @@ A full-stack event management platform that enables students to discover and reg
 cd BackendGCB
 npm install
 ```
+
 add `.env` file in `BackendGCB` directory with the variables mentioned in `BackendGCB/.env.example`:
+
 ```bash
 npm start
 ```
