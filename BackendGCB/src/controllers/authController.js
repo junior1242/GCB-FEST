@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
-
+import bcrypt from "bcryptjs";
 // REGISTER USER
 export const register = async (req, res, next) => {
   try {
@@ -75,7 +75,6 @@ export const register = async (req, res, next) => {
     next(error);
   }
 };
-
 // EMAIL VERIFICATION (Route: /api/auth/verify-email/:token)
 export const verifyEmail = async (req, res, next) => {
   try {
@@ -105,7 +104,6 @@ export const verifyEmail = async (req, res, next) => {
     next(error);
   }
 };
-
 // LOGIN USER
 export const login = async (req, res, next) => {
   try {
@@ -146,7 +144,6 @@ export const login = async (req, res, next) => {
   }
 };
 
-
 export const getAllStudents = async (req, res, next) => {
   try {
     const students = await User.find({ role: "student" }).select("-password");
@@ -156,11 +153,10 @@ export const getAllStudents = async (req, res, next) => {
   }
 };
 
-
 export const getProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -170,13 +166,12 @@ export const getProfile = async (req, res, next) => {
   }
 };
 
-
-export const updateProfile = async (req, res, next) => { 
+export const updateProfile = async (req, res, next) => {
   try {
     const { name, email, rollNumber, department, semester } = req.body;
 
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -186,4 +181,45 @@ export const updateProfile = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}
+};
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email, rollNumber, newPassword } = req.body;
+    const user = await User.findOne({
+      email: email?.trim().toLowerCase(),
+      rollNumber: rollNumber?.trim(),
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Invalid Email or Roll Number" });
+    }
+    if (user.lastPasswordReset) {
+      const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+      const timeSinceLastReset =
+        Date.now() - new Date(user.lastPasswordReset).getTime();
+
+      if (timeSinceLastReset < SEVEN_DAYS_IN_MS) {
+        const remainingMs = SEVEN_DAYS_IN_MS - timeSinceLastReset;
+        const daysRemaining = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
+
+        return res.status(429).json({
+          message: `Password was recently reset. Please wait ${daysRemaining} day(s) before trying again.`,
+        });
+      }
+    }
+
+    user.password = newPassword;
+    user.lastPasswordReset = Date.now();
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Password updated successfully! You can now login with your new password.",
+    });
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};

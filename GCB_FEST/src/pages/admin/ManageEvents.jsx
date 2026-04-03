@@ -495,7 +495,7 @@ export default function ManageEvents() {
                 ) : editingEventId ? (
                   "Update Event"
                 ) : (
-                  "Launch Event"
+                  "Publish Event"
                 )}
               </button>
             </form>
