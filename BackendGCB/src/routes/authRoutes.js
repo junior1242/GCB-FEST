@@ -6,6 +6,7 @@ import {
   getAllStudents,
   getProfile,
   updateProfile,
+  forgotPassword,
 } from "../controllers/authController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 import { authLimiter } from "../middleware/rateLimiter.js";
@@ -17,5 +18,6 @@ router.post("/login", authLimiter, login);
 router.get("/students", protect, adminOnly, getAllStudents);
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
+router.post("/forgot-password", forgotPassword);
 
 export default router;

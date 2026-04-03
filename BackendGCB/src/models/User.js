@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      select: false, 
+      select: false,
     },
     role: {
       type: String,
@@ -37,9 +37,10 @@ const userSchema = new mongoose.Schema(
       default: "student",
     },
     isVerified: {
-    type: Boolean,
-    default: false,
-  },
+      type: Boolean,
+      default: false,
+    },
+    lastPasswordReset: { type: Date, default: null },
     verificationToken: String,
     verificationTokenExpire: Date,
   },

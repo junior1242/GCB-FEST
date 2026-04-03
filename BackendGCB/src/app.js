@@ -8,7 +8,7 @@ import eventRoutes from "./routes/eventRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import reservationRoutes from "./routes/reservationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js"; 
-// import "./cron/deleteOldEvents.js";  //* This line ensures the cron job for deleting old events runs in the background  
+import "./cron/deleteOldEvents.js";  //* This line ensures the cron job for deleting old events runs in the background  
 // import "./cron/remainderJob.js";   //* uncomment this line to use the cron job for sending reminder
 const app = express();
 

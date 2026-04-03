@@ -13,6 +13,7 @@ import StudentProfile from "../pages/student/StudentProfile";
 import AdminStudents from "../pages/admin/AdminStudents";
 import AdminRegistrations from "../pages/admin/AdminRegistrations"; // NEW IMPORT
 import PendingStudents from "../pages/admin/PendingStudents"; // NEW IMPORT
+import ForgotPassword from "../pages/auth/ForgotPassword";
 
 
 export default function AppRoutes() {
@@ -21,6 +22,8 @@ export default function AppRoutes() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<AuthLayout />}>
+  
+          <Route path="forgot-password" element={<ForgotPassword />} />
           <Route index element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="verify-email/:token" element={<VerifyEmail />} />
