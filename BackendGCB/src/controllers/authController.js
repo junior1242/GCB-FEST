@@ -75,7 +75,7 @@ export const register = async (req, res, next) => {
     next(error);
   }
 };
-// EMAIL VERIFICATION (Route: /api/auth/verify-email/:token)
+
 export const verifyEmail = async (req, res, next) => {
   try {
     const token = crypto
@@ -104,7 +104,7 @@ export const verifyEmail = async (req, res, next) => {
     next(error);
   }
 };
-// LOGIN USER
+
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -182,6 +182,7 @@ export const updateProfile = async (req, res, next) => {
     next(error);
   }
 };
+
 export const forgotPassword = async (req, res) => {
   try {
     const { email, rollNumber, newPassword } = req.body;

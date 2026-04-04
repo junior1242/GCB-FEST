@@ -1,5 +1,6 @@
 import { cancellationTemplate } from "../templates/deleteEventEmailTemplates.js";
 import { getNewEventTemplate } from "../templates/newEventTemplate.js";
+import { updateEventTemplate } from "../templates/updateEventTemplate.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
@@ -64,7 +65,6 @@ export const createEvent = async (req, res, next) => {
   }
 };
 
-
 export const getEvents = async (req, res, next) => {
   try {
     const events = await Event.find().populate("category");
@@ -73,7 +73,6 @@ export const getEvents = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const getAllEvents = async (req, res) => {
   try {
@@ -125,6 +124,7 @@ export const updateEvent = async (req, res, next) => {
       ...(imagePublicId && { imagePublicId }),
     };
 
+    
     const event = await Event.findByIdAndUpdate(req.params.id, updatedData, {
       new: true,
     });
@@ -134,13 +134,38 @@ export const updateEvent = async (req, res, next) => {
       err.statusCode = 404;
       return next(err);
     }
+    const reservations = await Reservation.find({ event: event._id }).populate(
+      "user",
+    );
 
-    res.json({ message: "Event updated", event });
+    const emailPromises = reservations.map((booking) => {
+      if (booking.user && booking.user.email) {
+        const html = updateEventTemplate({
+          name: booking.user.name,
+          eventTitle: event.title,
+          eventDate: new Date(event.date).toDateString(),
+        });
+
+        return sendEmail({
+          email: booking.user.email,
+          subject: `Update Notice: ${event.title}`,
+          message: html,
+        });
+      }
+    });
+
+    // Send all emails in parallel (using allSettled so one failed email doesn't stop the rest)
+    await Promise.allSettled(emailPromises);
+
+    // 4. Respond to the admin
+    res.json({
+      message: "Event updated and registered students notified successfully.",
+      event,
+    });
   } catch (error) {
     next(error);
   }
 };
-
 export const deleteEvent = async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -164,9 +189,8 @@ export const deleteEvent = async (req, res, next) => {
           name: booking.user.name,
           eventTitle: event.title,
           eventDate: new Date(event.date).toDateString(),
-        })
+        });
 
-  
         return sendEmail({
           email: booking.user.email,
           subject: "Event Cancellation Notice",
