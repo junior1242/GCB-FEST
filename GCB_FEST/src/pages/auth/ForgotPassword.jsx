@@ -175,10 +175,7 @@ export default function ForgotPassword() {
 
             <p className="text-center text-white/50 text-sm">
               Remembered?{" "}
-              <Link
-                to="/login"
-                className="text-white font-bold hover:underline"
-              >
+              <Link to="/" className="text-white font-bold hover:underline">
                 Back to Login
               </Link>
             </p>

@@ -18,6 +18,6 @@ router.post("/login", authLimiter, login);
 router.get("/students", protect, adminOnly, getAllStudents);
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
-router.post("/forgot-password", forgotPassword);
+router.post("/forgot-password",authLimiter, forgotPassword);
 
 export default router;
