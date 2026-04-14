@@ -60,7 +60,8 @@ export default function MainLayout() {
             path: "/student/my-bookings",
             icon: Calendar,
           },
-          { name: "My Profile", path: "/student/profile", icon: UserCircle },
+        { name: "My Profile", path: "/student/profile", icon: UserCircle },
+          {name:"Previous Events", path:"/student/previous-events", icon: Calendar}
         ];
 
   const handleLogout = () => {
