@@ -5,11 +5,15 @@ import { overallLimiter } from "./middleware/rateLimiter.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
-import notificationRoutes from "./routes/notificationRoutes.js";
 import reservationRoutes from "./routes/reservationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js"; 
+<<<<<<< Updated upstream
 import "./cron/deleteOldEvents.js";  //* This line ensures the cron job for deleting old events runs in the background  
 // import "./cron/remainderJob.js";   //* uncomment this line to use the cron job for sending reminder
+=======
+// import "./cron/deleteOldEvents.js";  //* This line ensures the cron job for deleting old events runs in the background  
+import "./cron/remainderJob.js";   //* uncomment this line to use the cron job for sending reminder
+>>>>>>> Stashed changes
 const app = express();
 
 app.use(
@@ -26,7 +30,7 @@ app.use(overallLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/events", eventRoutes);
-app.use("/api/notifications", notificationRoutes);
+
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/admin", adminRoutes);
 

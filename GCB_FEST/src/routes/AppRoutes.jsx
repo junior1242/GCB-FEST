@@ -11,10 +11,15 @@ import ManageEvents from "../pages/admin/ManageEvents";
 import MyBookings from "../pages/student/MyBookings";
 import StudentProfile from "../pages/student/StudentProfile";
 import AdminStudents from "../pages/admin/AdminStudents";
-import AdminRegistrations from "../pages/admin/AdminRegistrations"; // NEW IMPORT
-import PendingStudents from "../pages/admin/PendingStudents"; // NEW IMPORT
+import AdminRegistrations from "../pages/admin/AdminRegistrations";
+import PendingStudents from "../pages/admin/PendingStudents";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+<<<<<<< Updated upstream
 
+=======
+import ResetPassword from "../pages/auth/ResetPassword";
+import PreviousEvents from "../pages/student/PreviousEvents";
+>>>>>>> Stashed changes
 
 export default function AppRoutes() {
   return (
@@ -22,8 +27,11 @@ export default function AppRoutes() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<AuthLayout />}>
+<<<<<<< Updated upstream
   
           <Route path="forgot-password" element={<ForgotPassword />} />
+=======
+>>>>>>> Stashed changes
           <Route index element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="verify-email/:token" element={<VerifyEmail />} />
@@ -35,6 +43,10 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="my-bookings" element={<MyBookings />} />
             <Route path="profile" element={<StudentProfile />} />
+<<<<<<< Updated upstream
+=======
+            <Route path="previous-events" element={<PreviousEvents />} />
+>>>>>>> Stashed changes
           </Route>
         </Route>
 

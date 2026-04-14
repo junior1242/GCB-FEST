@@ -16,6 +16,8 @@ export default function AdminStudents() {
       setStudents(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       toast.error("Failed to load students");
+      console.log(err);
+      
     } finally {
       setLoading(false);
     }
@@ -50,7 +52,7 @@ export default function AdminStudents() {
         </div>
       </div>
 
-      <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-[2rem] overflow-hidden backdrop-blur-xl shadow-2xl">
+      <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-4xl overflow-hidden backdrop-blur-xl shadow-2xl">
         <div className="overflow-x-auto w-full">
           {/* Minimum width prevents the table from squishing on mobile */}
           <table className="w-full text-left border-collapse min-w-[750px]">
@@ -78,7 +80,7 @@ export default function AdminStudents() {
                 </tr>
               ) : (
                 filteredStudents.map((student) => (
-                  <tr key={student._id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={student._id} className="hover:bg-white/2  transition-colors group">
                     <td className="p-4 md:p-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-600/10 flex items-center justify-center border border-blue-500/20 text-blue-400 font-bold text-base shrink-0">
@@ -109,9 +111,9 @@ export default function AdminStudents() {
                       </div>
                     </td>
                     <td className="p-4 md:p-6 text-center">
-                      {student.isVerified ? (
+                      {student.status === 'active' ? (
                         <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[9px] font-black rounded-full border border-emerald-500/20 uppercase tracking-widest">
-                          Verified
+                          Active
                         </span>
                       ) : (
                         <span className="px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[9px] font-black rounded-full border border-yellow-500/20 uppercase tracking-widest">

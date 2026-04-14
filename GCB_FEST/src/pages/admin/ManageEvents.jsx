@@ -499,6 +499,7 @@ export default function ManageEvents() {
                 )}
               </button>
             </form>
+
           </div>
         </div>
       )}

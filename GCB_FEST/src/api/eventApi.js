@@ -19,3 +19,11 @@ export const updateEvent = async (id, formData) => {
 
 export const deleteEvent = async (id) =>
   (await apiClient.delete(`/events/${id}`)).data;
+<<<<<<< Updated upstream
+=======
+
+export const fetchMyPastEvents = async () => {
+  const response = await apiClient.get("/events/my-past-events");
+  return response.data.data;
+};
+>>>>>>> Stashed changes

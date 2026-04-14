@@ -7,7 +7,7 @@ export const getAdminStats = async (req, res) => {
     const [totalStudents, pendingStudents, activeEvents, totalReservations] =
       await Promise.all([
         User.countDocuments({ role: "student" }),
-        User.countDocuments({ role: "student", isVerified: false }),
+        User.countDocuments({ role: "student", status: "pending" }),
         Event.countDocuments(),
         Reservation.countDocuments(),
       ]);
@@ -39,7 +39,12 @@ export const getAdminStats = async (req, res) => {
   }
 };
 
+<<<<<<< Updated upstream
 export const getUnverifiedStudents = async (req, res) => {
+=======
+// Get all verified students waiting for admin approval
+export const getPendingStudents = async (req, res, next) => {
+>>>>>>> Stashed changes
   try {
     const students = await User.find({ role: "student", isVerified: false })
       .select("name email createdAt")
@@ -52,9 +57,43 @@ export const getUnverifiedStudents = async (req, res) => {
 
 export const verifyStudent = async (req, res) => {
   try {
+<<<<<<< Updated upstream
     const { id } = req.params;
     await User.findByIdAndUpdate(id, { isVerified: true });
     res.status(200).json({ message: "Student verified successfully" });
+=======
+    const { studentId, status } = req.body;
+
+    if (status === "active") {
+      const student = await User.findByIdAndUpdate(
+        studentId,
+        { status: "active" },
+        { new: true },
+      );
+
+      if (!student)
+        return res.status(404).json({ message: "Student not found" });
+
+      return res.status(200).json({
+        success: true,
+        message: "Student registration approved successfully!",
+      });
+    }
+
+    if (status === "rejected") {
+      const student = await User.findByIdAndDelete(studentId);
+
+      if (!student)
+        return res.status(404).json({ message: "Student not found" });
+
+      return res.status(200).json({
+        success: true,
+        message: "Student rejected and record removed from system.",
+      });
+    }
+
+    res.status(400).json({ message: "Invalid status" });
+>>>>>>> Stashed changes
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
