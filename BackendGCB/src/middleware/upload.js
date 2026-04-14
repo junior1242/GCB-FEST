@@ -10,4 +10,17 @@ const storage = new CloudinaryStorage({
   },
 });
 
-export const upload = multer({ storage: storage });
+const fileFilter = (req, file, cb) => {
+  try {
+    const allowedMimes = ['image/jpeg', 'image/png'];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Unsupported file format. Only JPG, PNG, and JPEG are allowed.'), false);
+    }
+  } catch (error) {
+    cb(error, false);
+  }
+};
+
+export const upload = multer({ storage: storage, fileFilter: fileFilter });
