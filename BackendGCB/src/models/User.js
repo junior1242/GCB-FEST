@@ -40,6 +40,13 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    status: {
+      type: String,
+      enum: ["pending", "active", "rejected"],
+      default: "pending",
+    }, // For the Admin step
+    resetPasswordToken: { type: String, default: undefined },
+    resetPasswordExpires: { type: Date, default: undefined },
     lastPasswordReset: { type: Date, default: null },
     verificationToken: String,
     verificationTokenExpire: Date,

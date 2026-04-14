@@ -3,9 +3,9 @@ const router = express.Router();
 import {
   createEvent,
   getAllEvents,
-  getEventById,
   updateEvent,
   deleteEvent,
+  getMyPastEvents,
 } from "../controllers/eventController.js";
 import { protect, adminOnly} from "../middleware/authMiddleware.js";
 // const upload = require("../middleware/upload");
@@ -18,12 +18,14 @@ router.post("/", protect, adminOnly, upload.single("image"), createEvent);
 router.get("/", getAllEvents);
 
 // GET SINGLE EVENT
-router.get("/:id", getEventById);
+// router.get("/:id", getEventById);
 
 // UPDATE EVENT (Admin)
 router.put("/:id", protect, adminOnly, upload.single("image"), updateEvent);
 
 // DELETE EVENT (Admin)
 router.delete("/:id", protect, adminOnly, deleteEvent);
+
+router.get("/my-past-events", protect, getMyPastEvents);
 
 export default router;

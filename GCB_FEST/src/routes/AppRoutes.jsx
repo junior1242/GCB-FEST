@@ -14,6 +14,7 @@ import AdminStudents from "../pages/admin/AdminStudents";
 import AdminRegistrations from "../pages/admin/AdminRegistrations"; // NEW IMPORT
 import PendingStudents from "../pages/admin/PendingStudents"; // NEW IMPORT
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 
 
 export default function AppRoutes() {
@@ -22,9 +23,10 @@ export default function AppRoutes() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<AuthLayout />}>
-  
-          <Route path="forgot-password" element={<ForgotPassword />} />
+          {/* <Route path="forgot-password" element={<ForgotPassword />} /> */}
           <Route index element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="register" element={<Register />} />
           <Route path="verify-email/:token" element={<VerifyEmail />} />
         </Route>
@@ -35,6 +37,7 @@ export default function AppRoutes() {
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="my-bookings" element={<MyBookings />} />
             <Route path="profile" element={<StudentProfile />} />
+            {/* <Route path="previous-events" element={<PreviousEvents />} /> */}
           </Route>
         </Route>
 
