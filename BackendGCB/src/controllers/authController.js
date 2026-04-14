@@ -203,29 +203,40 @@ export const updateProfile = async (req, res, next) => {
   }
 };
 
-// 1. FORGOT PASSWORD
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Generate token
+    const restrictUserTime = 1 * 60 * 60 * 1000; // 1 hour
+    if (
+      user.lastPasswordChange &&
+      Date.now() - user.lastPasswordChange < restrictUserTime
+    ) {
+      const minutesLeft = Math.ceil(
+        (restrictUserTime - (Date.now() - user.lastPasswordChange)) /
+          (1000 * 60),
+      );
+      return res.status(429).json({
+        message: `You recently changed your password. Please wait ${minutesLeft} minutes before trying again.`,
+      });
+    }
+
     const resetToken = crypto.randomBytes(20).toString("hex");
 
-    // Hash token for DB storage
     const hashedToken = crypto
       .createHash("sha256")
       .update(resetToken)
       .digest("hex");
 
-    // FORCE SAVE to DB bypassing validation (This fixes the 'Invalid/Expired' error)
     await User.findByIdAndUpdate(user._id, {
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: Date.now() + 3600000, // 1 hour
+      resetPasswordExpires: Date.now() + 3600000, //^ 1 hour for token expiration
     });
 
-    const resetUrl = `${process.env.CLIENT_URL.replace(/\/$/, "")}/reset-password/${resetToken}`;
+    //^ Ensure CLIENT_URL does not end with a slash to avoid double slashes in the URL
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
     const html = PasswordResetTemplate(resetUrl);
     try {
       await sendEmail({
@@ -236,7 +247,6 @@ export const forgotPassword = async (req, res) => {
 
       res.status(200).json({ message: "Reset link sent to your email!" });
     } catch (mailError) {
-      // If mail fails, clear the tokens we just saved
       await User.findByIdAndUpdate(user._id, {
         resetPasswordToken: undefined,
         resetPasswordExpires: undefined,
@@ -250,7 +260,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// 2. RESET PASSWORD
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -279,6 +288,7 @@ export const resetPassword = async (req, res) => {
       password: newHashedPassword,
       resetPasswordToken: undefined,
       resetPasswordExpires: undefined,
+      lastPasswordChange: Date.now(),
     });
 
     res.status(200).json({ message: "Password updated successfully!" });
