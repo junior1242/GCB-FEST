@@ -1,15 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
   fetchUnverifiedStudents,
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-  verifyStudentAccount,
-=======
+  // verifyStudentAccount,
   processStudentStatus,
->>>>>>> Stashed changes
-=======
-  processStudentStatus, // Updated function name
->>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
 } from "../../api/adminApi.js";
 import {
   Loader2,

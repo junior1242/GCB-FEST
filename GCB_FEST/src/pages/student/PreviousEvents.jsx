@@ -70,11 +70,7 @@ export default function PreviousEvents() {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Clock size={14} />
-<<<<<<< HEAD
-                  {new Date(event.date).toLocaleDateString()}
-=======
                   {new Date(event.eventDate).toLocaleDateString()}
->>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <MapPin size={14} />
@@ -83,11 +79,7 @@ export default function PreviousEvents() {
               </div>
 
               <button className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 py-2 rounded-xl text-sm font-medium transition-colors border border-white/5 text-slate-300 hover:text-white">
-<<<<<<< HEAD
-                View Event Details <ArrowRightCircle size={16}  />
-=======
                 View Event Details <ArrowRightCircle size={16} />
->>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
               </button>
             </div>
           ))}

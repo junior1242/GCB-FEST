@@ -6,16 +6,13 @@ export const fetchDashboardStats = async () => {
   
 };
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
+
 export const fetchAllStudents = async () => { 
   const response = await apiClient.get("/admin/students");
   return response.data;
 }
 
-=======
->>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
+
 // export const fetchUnverifiedStudents = async () => {
 //   const response = await apiClient.get("/admin/unverified-students");
 //   return response.data;
@@ -26,10 +23,7 @@ export const fetchAllStudents = async () => {
 //   return response.data;
 // };
 
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
+
 export const fetchUnverifiedStudents = async () => {
   const response = await apiClient.get("/admin/pending-students");
   return response.data.data; // Adjusted to match standard controller response
