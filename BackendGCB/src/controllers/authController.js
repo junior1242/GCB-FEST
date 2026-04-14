@@ -3,27 +3,27 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail.js";
 import bcrypt from "bcryptjs";
+import { PasswordResetTemplate } from "../templates/forgotPassword.js";
+
 // REGISTER USER
 export const register = async (req, res, next) => {
   try {
     const { name, email, password, rollNumber, department, semester } =
       req.body;
 
-    if (!name || !email || !password)
-      return res
-        .status(400)
-        .json({ message: "Name, email and password required" });
+    if (!name || !email || !password || !rollNumber || !department || !semester)
+      return res.status(400).json({ message: "All fields are required" });
 
     const existingUser = await User.findOne({
       $or: [{ email }, { rollNumber }],
     });
+
     if (existingUser)
-      return res.status(400).json({ message: "Student already exists" });
+      return res.status(400).json({
+        message: "Student with this email or roll number already exists",
+      });
 
-    // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-
-    // Hash the token for the database (Security best practice)
     const hashedToken = crypto
       .createHash("sha256")
       .update(verificationToken)
@@ -37,11 +37,12 @@ export const register = async (req, res, next) => {
       department,
       semester,
       role: "student",
+      status: "pending",
+      isVerified: false,
       verificationToken: hashedToken,
-      verificationTokenExpire: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+      verificationTokenExpire: Date.now() + 24 * 60 * 60 * 1000,
     });
 
-    // Link sent to user (contains RAW token)
     const verifyURL = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
 
     const message = `
@@ -49,7 +50,7 @@ export const register = async (req, res, next) => {
           <h2>Account Verification</h2>
           <p>Thank you for registering. Please click the button below to verify your email:</p>
           <a href="${verifyURL}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a>
-          <p>This link expires in 24 hours.</p>
+          <p>After verification, an admin will review your details to grant system access.</p>
         </div>
     `;
 
@@ -62,10 +63,9 @@ export const register = async (req, res, next) => {
 
       res.status(201).json({
         message:
-          "Registration successful. Please check your email to verify your account.",
+          "Registration successful. Please verify your email via the link sent to your inbox.",
       });
     } catch (err) {
-      // If email fails, delete the user so they can try again
       await User.findByIdAndDelete(user._id);
       return res
         .status(500)
@@ -99,7 +99,11 @@ export const verifyEmail = async (req, res, next) => {
     user.verificationTokenExpire = undefined;
     await user.save();
 
-    res.json({ message: "Email verified successfully! You can now log in." });
+    // Changed message to reflect that admin approval is still needed
+    res.json({
+      message:
+        "Email verified successfully! Your account is now waiting for admin approval. You will be able to login once approved.",
+    });
   } catch (error) {
     next(error);
   }
@@ -112,10 +116,25 @@ export const login = async (req, res, next) => {
     const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    // 1. Check if user is verified before allowing login
+    // 1. Check Email Verification
     if (!user.isVerified) {
       return res.status(401).json({
         message: "Your email is not verified. Please check your inbox.",
+      });
+    }
+
+    // 2. Check Admin Approval Status
+    if (user.status === "pending") {
+      return res.status(403).json({
+        message:
+          "Your account is pending admin approval. Please wait for the administrator to verify your details.",
+      });
+    }
+
+    if (user.status === "rejected") {
+      return res.status(403).json({
+        message:
+          "Your registration request was rejected. Please contact the department office.",
       });
     }
 
@@ -137,6 +156,7 @@ export const login = async (req, res, next) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        status: user.status,
       },
     });
   } catch (error) {
@@ -184,43 +204,95 @@ export const updateProfile = async (req, res, next) => {
 };
 
 export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
   try {
-    const { email, rollNumber, newPassword } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const restrictUserTime = 1 * 60 * 60 * 1000; // 1 hour
+    if (
+      user.lastPasswordChange &&
+      Date.now() - user.lastPasswordChange < restrictUserTime
+    ) {
+      const minutesLeft = Math.ceil(
+        (restrictUserTime - (Date.now() - user.lastPasswordChange)) /
+          (1000 * 60),
+      );
+      return res.status(429).json({
+        message: `You recently changed your password. Please wait ${minutesLeft} minutes before trying again.`,
+      });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    await User.findByIdAndUpdate(user._id, {
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: Date.now() + 3600000, //^ 1 hour for token expiration
+    });
+
+    //^ Ensure CLIENT_URL does not end with a slash to avoid double slashes in the URL
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const html = PasswordResetTemplate(resetUrl);
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: "Password Reset Request",
+        message: html,
+      });
+
+      res.status(200).json({ message: "Reset link sent to your email!" });
+    } catch (mailError) {
+      await User.findByIdAndUpdate(user._id, {
+        resetPasswordToken: undefined,
+        resetPasswordExpires: undefined,
+      });
+      return res
+        .status(500)
+        .json({ message: "Error sending email. Please try again." });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // Find user and check if token is still valid (not expired)
     const user = await User.findOne({
-      email: email?.trim().toLowerCase(),
-      rollNumber: rollNumber?.trim(),
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
     });
 
     if (!user) {
-      return res.status(404).json({ message: "Invalid Email or Roll Number" });
-    }
-    if (user.lastPasswordReset) {
-      const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
-      const timeSinceLastReset =
-        Date.now() - new Date(user.lastPasswordReset).getTime();
-
-      if (timeSinceLastReset < SEVEN_DAYS_IN_MS) {
-        const remainingMs = SEVEN_DAYS_IN_MS - timeSinceLastReset;
-        const daysRemaining = Math.ceil(remainingMs / (1000 * 60 * 60 * 24));
-
-        return res.status(429).json({
-          message: `Password was recently reset. Please wait ${daysRemaining} day(s) before trying again.`,
-        });
-      }
+      return res
+        .status(400)
+        .json({ message: "Link is invalid or has expired" });
     }
 
-    user.password = newPassword;
-    user.lastPasswordReset = Date.now();
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const newHashedPassword = await bcrypt.hash(password, salt);
 
-    await user.save();
-
-    return res.status(200).json({
-      success: true,
-      message:
-        "Password updated successfully! You can now login with your new password.",
+    // Update user and clear reset fields
+    await User.findByIdAndUpdate(user._id, {
+      password: newHashedPassword,
+      resetPasswordToken: undefined,
+      resetPasswordExpires: undefined,
+      lastPasswordChange: Date.now(),
     });
+
+    res.status(200).json({ message: "Password updated successfully!" });
   } catch (error) {
-    console.error("Forgot Password Error:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Server error" });
   }
 };

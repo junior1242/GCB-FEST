@@ -7,9 +7,12 @@ export const verifyEmail = (token) =>
 export const getProfile = (data) => apiClient.get("/auth/profile", data);
 export const updateProfile = (data) => apiClient.put("/auth/profile", data);
 
+// export const forgotPasswordApi = async (data) => {
+//   const response = await apiClient.post("/auth/forgot-password", data);
+//   return response.data;
+// };
 
-
-export const forgotPasswordApi = async (data) => {
-  const response = await apiClient.post("/auth/forgot-password", data);
-  return response.data;
-};
+export const forgotPasswordApi = (data) =>
+  apiClient.post("/auth/forgot-password", data);
+export const resetPasswordApi = (token, data) =>
+  apiClient.post(`/auth/reset-password/${token}`, data);

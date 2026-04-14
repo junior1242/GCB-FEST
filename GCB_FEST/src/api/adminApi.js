@@ -6,6 +6,7 @@ export const fetchDashboardStats = async () => {
   
 };
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 export const fetchAllStudents = async () => { 
@@ -13,6 +14,8 @@ export const fetchAllStudents = async () => {
   return response.data;
 }
 
+=======
+>>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
 // export const fetchUnverifiedStudents = async () => {
 //   const response = await apiClient.get("/admin/unverified-students");
 //   return response.data;
@@ -23,13 +26,20 @@ export const fetchAllStudents = async () => {
 //   return response.data;
 // };
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> a8af5790d94358980f6cf7789c274b18afeaff5c
 export const fetchUnverifiedStudents = async () => {
-  const response = await apiClient.get("/admin/unverified-students");
-  return response.data;
+  const response = await apiClient.get("/admin/pending-students");
+  return response.data.data; // Adjusted to match standard controller response
 };
 
-export const verifyStudentAccount = async (userId) => {
-  const response = await apiClient.patch(`/admin/verify-student/${userId}`);
+// New function to handle both Approve and Reject
+export const processStudentStatus = async (studentId, status) => {
+  const response = await apiClient.patch("/admin/approve-student", {
+    studentId,
+    status,
+  });
   return response.data;
 };

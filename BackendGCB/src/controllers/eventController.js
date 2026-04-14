@@ -6,7 +6,6 @@ import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
 import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
@@ -97,21 +96,21 @@ export const getAllEvents = async (req, res) => {
   }
 };
 
-export const getEventById = async (req, res, next) => {
-  try {
-    const event = await Event.findById(req.params.id).populate("category");
+// export const getEventById = async (req, res, next) => {
+//   try {
+//     const event = await Event.findById(req.params.id).populate("category");
 
-    if (!event) {
-      const err = new Error("Event not found");
-      err.statusCode = 404;
-      return next(err);
-    }
+//     if (!event) {
+//       const err = new Error("Event not found");
+//       err.statusCode = 404;
+//       return next(err);
+//     }
 
-    res.json(event);
-  } catch (error) {
-    next(error);
-  }
-};
+//     res.json(event);
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const updateEvent = async (req, res, next) => {
   try {
@@ -124,7 +123,6 @@ export const updateEvent = async (req, res, next) => {
       ...(imagePublicId && { imagePublicId }),
     };
 
-    
     const event = await Event.findByIdAndUpdate(req.params.id, updatedData, {
       new: true,
     });
@@ -212,6 +210,38 @@ export const deleteEvent = async (req, res, next) => {
 
     res.json({
       message: "Event deleted and students notified successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getMyPastEvents = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+
+    // 1. Get current date in YYYY-MM-DD format
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // 2. Find all reservations made by this student
+    const userReservations = await Reservation.find({ user: userId });
+
+    // 3. Extract the Event IDs from those reservations
+    const eventIds = userReservations.map((resv) => resv.event);
+
+    // 4. Find the actual Event details where:
+    //    - The ID is in our list
+    //    - The date is less than today (Past Events)
+    const events = await Event.find({
+      _id: { $in: eventIds },
+      date: { $lt: todayStr }, // Use 'date' to match your createReservation logic
+    }).sort({ date: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      data: events,
     });
   } catch (error) {
     next(error);
