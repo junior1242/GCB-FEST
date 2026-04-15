@@ -29,7 +29,6 @@ export default function ManageEvents() {
   const [newCatName, setNewCatName] = useState("");
   const [isAddingCat, setIsAddingCat] = useState(false);
 
-  // State to track if we are editing an existing event
   const [editingEventId, setEditingEventId] = useState(null);
 
   const [form, setForm] = useState({
@@ -43,7 +42,7 @@ export default function ManageEvents() {
   });
   const [imageFile, setImageFile] = useState(null);
 
-  // Correct Local Date Logic (Prevents "Yesterday" showing up due to UTC offsets)
+  // Correct Local Date Logic
   const now = new Date();
   const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
@@ -67,6 +66,30 @@ export default function ManageEvents() {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Unsupported file format! Please upload JPG, PNG, or JPEG.");
+      e.target.value = ""; 
+      setImageFile(null);
+      return;
+    }
+
+  
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("File is too large! Maximum limit is 3MB.");
+      e.target.value = "";
+      setImageFile(null);
+      return;
+    }
+
+    setImageFile(file);
+  };
+
   const handleAddCategory = async (e) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
@@ -88,7 +111,6 @@ export default function ManageEvents() {
     setForm({ ...form, [name]: value });
   };
 
-  // Populate form for editing
   const handleEditClick = (event) => {
     setEditingEventId(event._id);
     setForm({
@@ -103,7 +125,6 @@ export default function ManageEvents() {
     setShowModal(true);
   };
 
-  // Reset form and open for new event
   const handleAddNewClick = () => {
     setEditingEventId(null);
     resetForm();
@@ -113,15 +134,11 @@ export default function ManageEvents() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validations
     if (!form.category) return toast.error("Please select a category");
     if (form.maxSeats <= 0)
       return toast.error("Seats must be greater than zero");
-
-    // Final check to prevent past dates manually
-    if (form.date < todayLocal) {
+    if (form.date < todayLocal)
       return toast.error("Event date cannot be in the past");
-    }
 
     setLoading(true);
     const formData = new FormData();
@@ -413,6 +430,7 @@ export default function ManageEvents() {
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
                   placeholder="e.g. 100"
                   onChange={handleInputChange}
+                  min="1"
                   required
                 />
               </div>
@@ -424,7 +442,7 @@ export default function ManageEvents() {
                 <input
                   type="date"
                   name="date"
-                  min={todayLocal} // Blocks selecting yesterday based on your local timezone
+                  min={todayLocal}
                   value={form.date}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
                   onChange={handleInputChange}
@@ -462,14 +480,14 @@ export default function ManageEvents() {
 
               <div className="md:col-span-2">
                 <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
-                  Banner Image
+                  Banner Image (JPG, PNG, JPEG only)
                 </label>
                 <div className="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-blue-500/50 transition-all cursor-pointer relative bg-white/[0.02]">
                   <input
                     type="file"
                     className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    accept="image/*"
+                    onChange={handleImageChange}
+                    accept=".jpg,.jpeg,.png"
                   />
                   <ImageIcon
                     className="mx-auto mb-2 text-slate-500"
@@ -499,7 +517,6 @@ export default function ManageEvents() {
                 )}
               </button>
             </form>
-
           </div>
         </div>
       )}

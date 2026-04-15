@@ -12,18 +12,26 @@ import { protect, adminOnly} from "../middleware/authMiddleware.js";
 import { upload } from '../middleware/upload.js';
 
 // CREATE EVENT (Admin)
-router.post("/", protect, adminOnly, upload.single("image"), createEvent);
+// router.post("/", protect, adminOnly, upload.single("image"), createEvent);
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  (req, res, next) => {
+    upload.single("image")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      next(); 
+    });
+  },
+  createEvent,
+);
 
-// GET ALL EVENTS
 router.get("/", getAllEvents);
 
-// GET SINGLE EVENT
-// router.get("/:id", getEventById);
-
-// UPDATE EVENT (Admin)
 router.put("/:id", protect, adminOnly, upload.single("image"), updateEvent);
 
-// DELETE EVENT (Admin)
 router.delete("/:id", protect, adminOnly, deleteEvent);
 
 router.get("/my-past-events", protect, getMyPastEvents);
