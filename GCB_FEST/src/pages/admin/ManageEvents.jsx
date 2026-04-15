@@ -74,12 +74,11 @@ export default function ManageEvents() {
 
     if (!allowedTypes.includes(file.type)) {
       toast.error("Unsupported file format! Please upload JPG, PNG, or JPEG.");
-      e.target.value = ""; 
+      e.target.value = "";
       setImageFile(null);
       return;
     }
 
-  
     if (file.size > 3 * 1024 * 1024) {
       toast.error("File is too large! Maximum limit is 3MB.");
       e.target.value = "";
@@ -223,7 +222,7 @@ export default function ManageEvents() {
               {isAddingCat ? (
                 <Loader2 size={18} className="animate-spin" />
               ) : (
-                <Plus size={18} />
+                <Plus size={18} className="hover:cursor-pointer" />
               )}
             </button>
           </form>
@@ -232,9 +231,10 @@ export default function ManageEvents() {
 
           <button
             onClick={handleAddNewClick}
-            className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl font-bold transition-all w-full sm:w-auto text-sm shadow-xl"
+            className="flex items-center justify-center gap-2 bg-blue-600 hover:cursor-pointer bg-blue-400 px-6 py-3 rounded-xl font-bold transition-all w-full sm:w-auto text-sm shadow-xl"
           >
-            <Plus size={18} /> Launch Event
+            <Plus size={16} />
+            New Event
           </button>
         </div>
       </div>
@@ -345,15 +345,16 @@ export default function ManageEvents() {
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
           <div className="bg-slate-900 border border-white/10 w-full max-w-3xl rounded-2xl md:rounded-[3rem] p-6 md:p-12 max-h-[95vh] overflow-y-auto shadow-2xl relative my-auto">
-            <div className="flex justify-between items-start mb-6">
+            {/* Header Section */}
+            <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-2xl md:text-3xl font-bold">
+                <h2 className="text-2xl md:text-4xl font-black text-white tracking-tight">
                   {editingEventId ? "Update Event" : "New Event"}
                 </h2>
-                <p className="text-slate-400 text-xs mt-1">
+                <p className="text-indigo-400/80 text-xs md:text-sm font-medium mt-1">
                   {editingEventId
-                    ? "Modify the event details."
-                    : "Announce a new campus activity."}
+                    ? "Modify the event details and save changes."
+                    : "Create a new Event for the College."}
                 </p>
               </div>
               <button
@@ -361,9 +362,9 @@ export default function ManageEvents() {
                   setShowModal(false);
                   resetForm();
                 }}
-                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="p-2 hover:bg-white/10 rounded-full transition-all text-slate-400 hover:text-white"
               >
-                <X className="text-slate-400" />
+                <X size={28} />
               </button>
             </div>
 
@@ -371,63 +372,73 @@ export default function ManageEvents() {
               onSubmit={handleSubmit}
               className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6"
             >
+              {/* Title Field */}
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Title
                 </label>
                 <input
                   name="title"
                   value={form.title}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
                   placeholder="e.g. Annual Symposium"
                   onChange={handleInputChange}
                   required
                 />
               </div>
 
+              {/* Description Field */}
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Description
                 </label>
                 <textarea
                   name="description"
                   value={form.description}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 h-24 md:h-28 resize-none text-sm outline-none focus:border-blue-500"
-                  placeholder="Brief description..."
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 h-24 md:h-28 resize-none text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all placeholder:text-slate-600"
+                  placeholder="What is this event about..."
                   onChange={handleInputChange}
                   required
                 />
               </div>
 
+              {/* Category Field */}
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Category
                 </label>
                 <select
                   name="category"
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none cursor-pointer focus:border-indigo-500 transition-all appearance-none"
                   onChange={handleInputChange}
                   value={form.category}
                   required
                 >
-                  <option value="">Select Category</option>
+                  <option value="" className="bg-slate-900">
+                    Select Category
+                  </option>
                   {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
+                    <option
+                      key={cat._id}
+                      value={cat._id}
+                      className="bg-slate-900"
+                    >
                       {cat.name}
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Seats Field */}
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Seats Available
                 </label>
                 <input
                   type="number"
                   name="maxSeats"
                   value={form.maxSeats}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all"
                   placeholder="e.g. 100"
                   onChange={handleInputChange}
                   min="1"
@@ -435,8 +446,9 @@ export default function ManageEvents() {
                 />
               </div>
 
+              {/* Date Field - High Visibility Logo */}
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Date
                 </label>
                 <input
@@ -444,76 +456,83 @@ export default function ManageEvents() {
                   name="date"
                   min={todayLocal}
                   value={form.date}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:hover:opacity-70"
                   onChange={handleInputChange}
                   required
                 />
               </div>
 
+              {/* Time Field - High Visibility Logo */}
               <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Time
                 </label>
                 <input
                   type="time"
                   name="time"
                   value={form.time}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all [color-scheme:dark] [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:hover:opacity-70"
                   onChange={handleInputChange}
                   required
                 />
               </div>
 
+              {/* Location Field */}
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
                   Location
                 </label>
                 <input
                   name="location"
                   value={form.location}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500"
-                  placeholder="Main Auditorium"
+                  className="w-full bg-slate-950/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                  placeholder="Main Auditorium, Building C"
                   onChange={handleInputChange}
                   required
                 />
               </div>
 
+              {/* Banner Upload Field */}
               <div className="md:col-span-2">
-                <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest ml-1">
-                  Banner Image (JPG, PNG, JPEG only)
+                <label className="text-[10px] font-black text-indigo-400 uppercase mb-2 block tracking-[0.2em] ml-1">
+                  Banner Image
                 </label>
-                <div className="border-2 border-dashed border-white/10 rounded-xl p-6 text-center hover:border-blue-500/50 transition-all cursor-pointer relative bg-white/[0.02]">
+                <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer relative group">
                   <input
                     type="file"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     onChange={handleImageChange}
                     accept=".jpg,.jpeg,.png"
                   />
                   <ImageIcon
-                    className="mx-auto mb-2 text-slate-500"
-                    size={24}
+                    className="mx-auto mb-3 text-slate-500 group-hover:text-indigo-400 transition-colors"
+                    size={32}
                   />
-                  <p className="text-[10px] text-slate-400 font-bold">
+                  <p className="text-xs text-slate-400 font-bold group-hover:text-slate-200 transition-colors">
                     {imageFile
                       ? imageFile.name
-                      : "Tap to upload new image (keep empty to leave unchanged)"}
+                      : "Drag and drop or click to upload banner"}
+                  </p>
+                  <p className="text-[9px] text-slate-600 mt-1 uppercase tracking-tighter">
+                    JPG, PNG up to 3MB
                   </p>
                 </div>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="md:col-span-2 w-full bg-blue-600 hover:bg-blue-500 py-3.5 md:py-4 rounded-xl font-black text-white shadow-xl flex items-center justify-center gap-3"
+                className="md:col-span-2 w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 py-4 rounded-xl font-black text-white shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-3 transition-all active:scale-[0.98] cursor-pointer"
               >
                 {loading ? (
                   <>
                     <Loader2 className="animate-spin" size={20} /> Processing...
                   </>
                 ) : editingEventId ? (
-                  "Update Event"
+                  "Update Event Details"
                 ) : (
-                  "Publish Event"
+                  "Publish Live Event"
                 )}
               </button>
             </form>

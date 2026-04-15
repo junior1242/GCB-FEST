@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, Outlet} from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -60,8 +60,12 @@ export default function MainLayout() {
             path: "/student/my-bookings",
             icon: Calendar,
           },
-        { name: "My Profile", path: "/student/profile", icon: UserCircle },
-          {name:"Previous Events", path:"/student/previous-events", icon: Calendar}
+          {
+            name: "Previous Events",
+            path: "/student/previous-events",
+            icon: Calendar,
+          },
+          { name: "My Profile", path: "/student/profile", icon: UserCircle },
         ];
 
   const handleLogout = () => {
@@ -92,7 +96,7 @@ export default function MainLayout() {
         <div className="mb-10 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-              CampusEvents
+              GCB FEST
             </h1>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold">
               {user.role} Portal
@@ -156,7 +160,7 @@ export default function MainLayout() {
           {/* User Section */}
           <div className="flex items-center gap-4">
             <span className="hidden sm:inline text-xs text-slate-400 uppercase tracking-wide italic">
-              Welcome back,{" "}
+              {" "}
               <span className="text-slate-200 font-medium">{user.role}</span>
             </span>
             <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-600 to-emerald-500 border border-white/10 shadow-inner p-[2px]">

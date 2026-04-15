@@ -158,7 +158,7 @@ export default function StudentProfile() {
                       <button
                         onClick={handleUpdateSemester}
                         disabled={updating}
-                        className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition-all"
+                        className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg hover:cursor-pointer bg-emerald-500/30 transition-all"
                       >
                         {updating ? (
                           <Loader2 size={16} className="animate-spin" />
@@ -171,7 +171,7 @@ export default function StudentProfile() {
                           setIsEditing(false);
                           setTempSemester(student.semester);
                         }}
-                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all"
+                        className="p-2 bg-red-500/20 text-red-400 rounded-lg hover:cursor-pointer hover:bg-red-500/30 transition-all"
                       >
                         <X size={16} />
                       </button>
@@ -179,7 +179,7 @@ export default function StudentProfile() {
                   ) : (
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="p-2 text-slate-400 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 text-slate-400 hover:cursor-pointer text-blue-400 opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Pencil size={16} />
                     </button>
