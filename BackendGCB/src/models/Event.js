@@ -34,10 +34,10 @@ const eventSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    isArchived: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
 
 export default mongoose.model("Event", eventSchema);
 
-// module.exports = mongoose.model("Event", eventSchema);

@@ -9,6 +9,8 @@ import {
   Menu,
   X,
   ChevronRight,
+  CalendarCheck,
+  History,
 } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
@@ -48,6 +50,12 @@ export default function MainLayout() {
             path: "/admin/pending-students",
             icon: Users,
           },
+          {
+            name: "Today's Events",
+            path: "/admin/todays-events",
+            icon: CalendarCheck,
+          },
+          { name: "Past Events", path: "/admin/past-events", icon: History },
         ]
       : [
           {

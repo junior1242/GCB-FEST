@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
+import PastEvent from "../models/PastEvent.js";
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -94,5 +95,89 @@ export const handleStudentStatus = async (req, res, next) => {
     res.status(400).json({ message: "Invalid status" });
   } catch (error) {
     next(error);
+  }
+};
+
+export const getTodaysEvents = async (req, res) => {
+  try {
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // console.log("Searching for string match with:", todayStr);
+
+    const events = await Event.find({
+      date: { $regex: `^${todayStr}` },
+      isArchived: { $ne: true },
+    });
+
+    res.status(200).json(events);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching today's events" });
+  }
+};
+
+export const markAttendance = async (req, res) => {
+  try {
+    const { reservationId, status } = req.body;
+
+    const updated = await Reservation.findByIdAndUpdate(
+      reservationId,
+      { attendanceStatus: status },
+      { new: true }, // Return the updated document
+    ).populate("user", "name email");
+
+    if (!updated) {
+      return res.status(404).json({ message: "Registration not found" });
+    }
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getEventReservations = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // 1. Find all reservations for this specific event
+    // 2. .populate("user", "name email") swaps the User ID for the actual Name and Email
+    const reservations = await Reservation.find({ event: eventId }).populate(
+      "user",
+      "name email",
+    );
+
+    res.status(200).json(reservations);
+  } catch (error) {
+    console.error("Error fetching reservations:", error);
+    res.status(500).json({ message: "Error fetching student list" });
+  }
+};
+
+export const getPastEvents = async (req, res) => {
+  try {
+    const archives = await PastEvent.find()
+      .populate("event") // Get the original event details (title, date)
+      .sort({ createdAt: -1 }); // Show newest first
+    res.status(200).json(archives);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch archives" });
+  }
+};
+
+export const getPastEventDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const details = await PastEvent.findById(id)
+      .populate("event")
+      .populate({
+        path: "registrations",
+        populate: { path: "user", select: "name email" }, // Get student names inside registrations
+      });
+
+    if (!details) return res.status(404).json({ message: "Record not found" });
+    res.status(200).json(details);
+  } catch (error) {
+    res.status(500).json({ message: "Error loading details" });
   }
 };
