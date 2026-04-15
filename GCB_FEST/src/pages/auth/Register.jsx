@@ -40,6 +40,11 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (form.password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       toast.error("Passwords do not match");
       return;
@@ -118,7 +123,7 @@ export default function Register() {
               />
             </div>
 
-            {/* Roll Number - Forced Positive */}
+            {/* Roll Number */}
             <div className="relative">
               <Hash className={iconStyle} />
               <input
@@ -202,10 +207,11 @@ export default function Register() {
               <input
                 type="password"
                 name="password"
-                placeholder="Password"
+                placeholder="Password (Min. 8 characters)"
                 value={form.password}
                 onChange={handleChange}
                 required
+                minLength="8"
                 className={inputStyle}
               />
             </div>
@@ -220,6 +226,7 @@ export default function Register() {
                 value={form.confirmPassword}
                 onChange={handleChange}
                 required
+                minLength="8"
                 className={inputStyle}
               />
             </div>

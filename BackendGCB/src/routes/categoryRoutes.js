@@ -3,7 +3,6 @@ const router = express.Router();
 import {
   createCategory,
   getCategories,
-  updateCategory,
   deleteCategory,
 } from "../controllers/categoryController.js";
 
@@ -13,7 +12,6 @@ router.get("/", getCategories);
 
 // Admin Only Routes
 router.post("/", protect, adminOnly, createCategory);
-router.put("/:id", protect, adminOnly, updateCategory);
+// router.put("/:id", protect, adminOnly, updateCategory);
 router.delete("/:id", protect, adminOnly, deleteCategory);
-
 export default router;

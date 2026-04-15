@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { fetchDashboardStats } from "../../api/adminApi.js";
 import {
+  getCategories,
+  createCategory,
+  deleteCategory,
+} from "../../api/categoryApi.js";
+import {
   Users,
   Calendar,
   CheckCircle,
   Clock,
   Loader2,
   ListOrdered,
+  Tag,
+  Trash2,
+  Plus,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -15,23 +24,62 @@ export default function AdminDashboard() {
     activeEvents: 0,
     totalReservations: 0,
     pendingStudents: 0,
-    eventStats: [], // Added to store the table data
+    eventStats: [],
   });
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [statsData, catData] = await Promise.all([
+        fetchDashboardStats(),
+        getCategories(),
+      ]);
+      setStats(statsData);
+      setCategories(catData.data || catData); // Handle both response formats
+    } catch (error) {
+      console.error("Dashboard error:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const getStats = async () => {
-      try {
-        const data = await fetchDashboardStats();
-        setStats(data);
-      } catch (error) {
-        console.error("Dashboard error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getStats();
+    loadData();
   }, []);
+
+  // const handleAddCategory = async (e) => {
+  //   e.preventDefault();
+  //   if (!newCategory.trim()) return;
+  //   try {
+  //     await createCategory({ name: newCategory });
+  //     setNewCategory("");
+  //     const catData = await getCategories();
+  //     setCategories(catData.data || catData);
+  //     toast.success("Category added!");
+  //   } catch (error) {
+  //     toast.error(error.response?.data?.message || "Add failed");
+  //   }
+  // };
+
+  
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Are you sure?")) return;
+    try {
+      await deleteCategory(id);
+      setCategories(categories.filter((c) => c._id !== id));
+      toast.success("Category deleted");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message ||
+          "Cannot delete category being used by events",
+      );
+    }
+  };
 
   if (loading)
     return (
@@ -75,7 +123,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Reservation Details Table */}
+        {/* LEFT COLUMN: Reservation Details Table */}
         <div className="lg:col-span-2 bg-slate-900/50 border border-white/5 p-6 rounded-2xl shadow-xl backdrop-blur-sm">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-blue-400 flex items-center gap-2">
@@ -91,39 +139,38 @@ export default function AdminDashboard() {
                   <th className="py-3 px-2 font-medium text-center">
                     Bookings
                   </th>
-                  <th className="py-3 px-2 font-medium text-center">Capacity</th>
+                  <th className="py-3 px-2 font-medium text-center">
+                    Capacity
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {stats.eventStats?.length > 0 ? (
-                  stats.eventStats.map((event) => {                   
-                    return (
-                      <tr
-                        key={event._id}
-                        className="border-b border-white/5 hover:bg-white/5 transition-colors group"
-                      >
-                        <td className="py-4 px-2">
-                          <p className="font-semibold text-slate-200">
-                            {event.title}
-                          </p>
-                          <p className="text-sm text-slate-400">
-                            {new Date(event.date).toLocaleDateString()}
-                          </p>
-                        </td>
-                        <td className="py-4 px-2 text-center">
-                          <span className="bg-blue-500/20 text-blue-400 font-bold px-3 py-1 rounded-full text-xs">
-                            {event.reservationsCount}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2 text-center">
-                          <span className="bg-blue-500/20 text-blue-400 font-bold px-3 py-1 rounded-full text-xs">
-                            {event.maxSeats}
-                          </span>
-                        </td>
-                        
-                      </tr>
-                    );
-                  })
+                  stats.eventStats.map((event) => (
+                    <tr
+                      key={event._id}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors group"
+                    >
+                      <td className="py-4 px-2">
+                        <p className="font-semibold text-slate-200">
+                          {event.title}
+                        </p>
+                        <p className="text-sm text-slate-400">
+                          {new Date(event.date).toLocaleDateString()}
+                        </p>
+                      </td>
+                      <td className="py-4 px-2 text-center">
+                        <span className="bg-blue-500/20 text-blue-400 font-bold px-3 py-1 rounded-full text-xs">
+                          {event.reservationsCount}
+                        </span>
+                      </td>
+                      <td className="py-4 px-2 text-center">
+                        <span className="bg-slate-700/50 text-slate-300 font-bold px-3 py-1 rounded-full text-xs">
+                          {event.maxSeats}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
                     <td
@@ -139,24 +186,55 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* System Overview */}
-        {/* <div className="bg-slate-900/50 border border-white/5 p-6 rounded-2xl shadow-xl backdrop-blur-sm h-fit">
-          <h2 className="text-xl font-semibold mb-4 text-emerald-400">
-            System Status
+        {/* RIGHT COLUMN: Category Management */}
+        <div className="bg-slate-900/50 border border-white/5 p-6 rounded-2xl shadow-xl backdrop-blur-sm h-fit">
+          <h2 className="text-xl font-semibold mb-4 text-emerald-400 flex items-center gap-2">
+            <Tag size={20} /> Categories
           </h2>
-          <div className="space-y-4">
-            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-              <p className="text-slate-400 text-sm">Active Students</p>
-              <p className="text-2xl font-bold">{stats.totalStudents}</p>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
-              <p className="text-slate-400 text-sm">Need Verification</p>
-              <p className="text-2xl font-bold text-yellow-500">
-                {stats.pendingStudents}
+
+          {/* Inline Add Category Form */}
+          {/* <form onSubmit={handleAddCategory} className="flex gap-2 mb-6">
+            <input
+              type="text"
+              placeholder="Add new..."
+              className="bg-slate-800 border border-white/10 rounded-lg py-2 px-3 text-sm w-full focus:outline-none focus:border-emerald-500 transition-colors"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-lg transition-all"
+            >
+              <Plus size={18} />
+            </button>
+          </form> */}
+
+          {/* Category List */}
+          <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <div
+                  key={cat._id}
+                  className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-white/10 transition-all"
+                >
+                  <span className="text-slate-200 text-sm font-medium">
+                    {cat.name}
+                  </span>
+                  <button
+                    onClick={() => handleDeleteCategory(cat._id)}
+                    className="text-slate-500 hover:text-red-500 opacity-0 cursor-pointer group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-slate-500 text-sm italic text-center py-4">
+                No categories created
               </p>
-            </div>
+            )}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );
