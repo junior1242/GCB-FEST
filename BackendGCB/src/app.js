@@ -10,7 +10,6 @@ import adminRoutes from "./routes/adminRoutes.js";
 // import "./cron/deleteOldEvents.js";
 // import "./cron/remainderJob.js";
 import "./cron/archieveCron.js";
-
 const app = express();
 
 app.use(

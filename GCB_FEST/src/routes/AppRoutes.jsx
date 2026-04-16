@@ -27,8 +27,8 @@ export default function AppRoutes() {
         <Route path="/" element={<AuthLayout />}>
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route index element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
+          <Route path="reset-password/:token" element={<ResetPassword />} />
           <Route path="register" element={<Register />} />
           <Route path="verify-email/:token" element={<VerifyEmail />} />
         </Route>
