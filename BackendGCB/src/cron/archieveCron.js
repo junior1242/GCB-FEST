@@ -5,13 +5,14 @@ import Reservation from "../models/Reservation.js";
 import PastEvent from "../models/PastEvent.js";
 
 cron.schedule("0 0 * * *", async () => {
+  console.log("Running Archive Cron Job ");
   try {
     const yesterday = new Date();
-    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setHours(0, 0, 0, 0); 
 
     // 1. Find active events that happened before today
     const expiredEvents = await Event.find({
-      date : { $lt: yesterday },
+      date: { $lt: yesterday },
       isArchived: false,
     });
 

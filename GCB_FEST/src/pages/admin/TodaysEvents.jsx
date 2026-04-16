@@ -257,7 +257,7 @@ const TodaysEvents = () => {
           <div className="bg-white/5 p-4 text-right">
             <button
               onClick={() => setSelectedEvent(null)}
-              className="text-xs font-bold text-slate-500 hover:text-white transition-colors"
+              className="text-xs font-bold text-slate-500 hover:cursor-pointer text-white transition-colors"
             >
               Close List
             </button>
