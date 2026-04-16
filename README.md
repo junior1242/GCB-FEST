@@ -4,16 +4,17 @@ A full-stack event management platform that enables students to discover and reg
 
 ## Features
 
-- **Event Management**: Create, update, and delete events
-- **Student Registration**: Browse and register for events
-- **Admin Dashboard**: Manage events, categories, and student registrations
-- **Email Notifications**: Automated notifications using Nodemailer
-- **Mobile Responsive**: Works on all devices
+- Event Management: Create, update, and delete events
+- Student Registration: Browse and register for events
+- Admin Dashboard: Manage events, categories, and student registrations
+- Email Notifications: Automated notifications using Nodemailer
+- Mobile Responsive: Works perfectly on all devices
 
 ## Tech Stack
 
-**Backend**: Node.js, Express.js, MongoDB, JWT, Nodemailer, Cloudinary  
-**Frontend**: React, Vite, Tailwind CSS, Axios, React Router
+**Backend:** Node.js, Express, MongoDB, JWT, Nodemailer, Cloudinary
+
+**Frontend:** React, Vite, Tailwind CSS, Axios, React Router
 
 ## Prerequisites
 
@@ -22,14 +23,20 @@ A full-stack event management platform that enables students to discover and reg
 - Cloudinary account
 - Email service credentials
 
-## Clone the Repository
+## Deployment
+
+Live Demo: [GCB Fest](https://gcb-fest-frontend.onrender.com)
+
+The application is deployed on Render.
+
+## Setup
+
+### Clone the Repository
 
 ```bash
 git clone https://github.com/junior1242/GCB-FEST.git
 cd GCB-FEST
 ```
-
-## Quick Start
 
 ### Backend
 
@@ -38,7 +45,7 @@ cd BackendGCB
 npm install
 ```
 
-add `.env` file in `BackendGCB` directory with the variables mentioned in `BackendGCB/.env.example`:
+Add `.env` file in `BackendGCB` directory with required variables from `.env.example`:
 
 ```bash
 npm start
@@ -58,5 +65,5 @@ App runs on `http://localhost:5173`
 
 ## Contributors
 
-- Shahid Ali
-- Muhammad Hussnain Javaid
+- Shahid Ali (Lead Developer)
+- Muhammad Hussnain Javaid (Developer)
