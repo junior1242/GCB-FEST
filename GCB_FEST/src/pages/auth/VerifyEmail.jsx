@@ -14,7 +14,7 @@ export default function VerifyEmail() {
 
     const confirmEmail = async () => {
       try {
-        await axios.get(`http://localhost:8081/api/auth/verify-email/${token}`);
+        await axios.get(`https://gcb-fest.onrender.com/api/auth/verify-email/${token}`);
         setStatus("success");
       } catch (err) {
         console.log(err.response?.data);
