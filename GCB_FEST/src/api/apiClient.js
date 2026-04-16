@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8081/api", 
-  withCredentials: true, 
+  baseURL: "https://gcb-fest.onrender.com/api",
+  withCredentials: true,
 });
 
 //* acts as a middleware to attach the token to every request if it exists in localStorage
@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 export default apiClient;
