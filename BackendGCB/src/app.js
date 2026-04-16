@@ -15,7 +15,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://gcb-fest-frontend.onrender.com/",
     credentials: true,
   }),
 );
