@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
-import PastEvent from "../models/PastEvent.js";
+// import PastEvent from "../models/PastEvent.js";
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -154,30 +154,33 @@ export const getEventReservations = async (req, res) => {
   }
 };
 
-export const getPastEvents = async (req, res) => {
-  try {
-    const archives = await PastEvent.find()
-      .populate("event") // Get the original event details (title, date)
-      .sort({ createdAt: -1 }); // Show newest first
-    res.status(200).json(archives);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to fetch archives" });
-  }
-};
+// export const getPastEvents = async (req, res) => {
+//   try {
+//     const archives = await PastEvent.find()
+//       .populate("event") // Get the original event details (title, date)
+//       .sort({ createdAt: -1 }); // Show newest first
+//     res.status(200).json(archives);
+//   } catch (error) {
+//     res.status(500).json({ message: "Failed to fetch archives" });
+//   }
+// };
 
-export const getPastEventDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const details = await PastEvent.findById(id)
-      .populate("event")
-      .populate({
-        path: "registrations",
-        populate: { path: "user", select: "name email" }, // Get student names inside registrations
-      });
 
-    if (!details) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json(details);
-  } catch (error) {
-    res.status(500).json({ message: "Error loading details" });
-  }
-};
+
+
+// export const getPastEventDetails = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const details = await PastEvent.findById(id)
+//       .populate("event")
+//       .populate({
+//         path: "registrations",
+//         populate: { path: "user", select: "name email" }, // Get student names inside registrations
+//       });
+
+//     if (!details) return res.status(404).json({ message: "Record not found" });
+//     res.status(200).json(details);
+//   } catch (error) {
+//     res.status(500).json({ message: "Error loading details" });
+//   }
+// };

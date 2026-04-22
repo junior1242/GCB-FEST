@@ -5,7 +5,7 @@ const eventSchema = new mongoose.Schema(
 
     description: { type: String, required: true },
 
-    date: { type: String, required: true }, // keep as string for simplicity
+    date: { type: String, required: true }, 
 
     time: { type: String, required: true },
 
@@ -20,12 +20,12 @@ const eventSchema = new mongoose.Schema(
     },
 
     image: {
-      type: String, // Cloudinary URL
+      type: String, 
       default: null,
     },
 
     imagePublicId: {
-      type: String, // Cloudinary public_id
+      type: String, 
       default: null,
     },
 

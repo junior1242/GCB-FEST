@@ -7,9 +7,9 @@ import {
   deleteEvent,
   getMyPastEvents,
 } from "../controllers/eventController.js";
-import { protect, adminOnly} from "../middleware/authMiddleware.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 // const upload = require("../middleware/upload");
-import { upload } from '../middleware/upload.js';
+import { upload } from "../middleware/upload.js";
 
 // CREATE EVENT (Admin)
 // router.post("/", protect, adminOnly, upload.single("image"), createEvent);
@@ -22,7 +22,7 @@ router.post(
       if (err) {
         return res.status(400).json({ message: err.message });
       }
-      next(); 
+      next();
     });
   },
   createEvent,

@@ -70,7 +70,7 @@ export default function PreviousEvents() {
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <Clock size={14} />
-                  {new Date(event.eventDate).toLocaleDateString()}
+                  {new Date(event.date).toLocaleDateString()}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                   <MapPin size={14} />

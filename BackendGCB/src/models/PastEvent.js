@@ -1,15 +1,12 @@
-import mongoose from "mongoose";
-
 const pastEventSchema = new mongoose.Schema(
   {
-    event: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Event",
+    // Store the event data as a plain object, NOT a reference
+    eventSnapshot: {
+      type: Object,
       required: true,
     },
-    registrations: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "Reservation" },
-    ],
+    // Store the registration data as plain objects
+    registrationsSnapshot: [Object],
     stats: {
       totalRegistered: Number,
       totalArrived: Number,
@@ -19,5 +16,3 @@ const pastEventSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
-
-export default mongoose.model("PastEvent", pastEventSchema);

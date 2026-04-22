@@ -32,6 +32,8 @@ export default function MainLayout() {
     }
   } catch (err) {
     console.error("Invalid token");
+    console.log(err);
+    
   }
 
   const menuItems =

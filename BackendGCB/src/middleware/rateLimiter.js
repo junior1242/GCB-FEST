@@ -5,7 +5,8 @@ export const overallLimiter = rateLimit({
   max: 500,
   message: {
     status: 429,
-    error: "Too many requests from the user, please try again after 5 minutes.",
+    // error: "Too many requests from the user, please try again after 5 minutes.",
+    message: "Too many requests, please try again after 5 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -16,7 +17,9 @@ export const authLimiter = rateLimit({
   max: 5,
   message: {
     status: 429,
-    error: "Too many authentication attempts. Please try again later.",
+    message: "Too many authentication attempts, please try again after 1 minute",
+    
+    // error: "Too many authentication attempts. Please try again later.",
   },
   standardHeaders: true,
   legacyHeaders: false,
