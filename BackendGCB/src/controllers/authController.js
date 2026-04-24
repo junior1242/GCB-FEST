@@ -14,21 +14,33 @@ export const register = async (req, res, next) => {
     if (!name || !email || !password || !rollNumber || !department || !semester)
       return res.status(400).json({ message: "All fields are required" });
 
+    // 1. Check if email or roll number already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { rollNumber }],
     });
 
-    if (existingUser)
-      return res.status(400).json({
-        message: "Student with this email or roll number already exists",
-      });
+    if (existingUser) {
+      // IF THE USER IS VERIFIED: Block the registration
+      if (existingUser.isVerified) {
+        return res.status(400).json({
+          message:
+            "Student with this email or roll number already exists and is verified.",
+        });
+      }
 
+      // IF THE USER IS NOT VERIFIED: Delete the old record
+      // This allows the user to register again (fixes the "orphan" problem)
+      await User.findByIdAndDelete(existingUser._id);
+    }
+
+    // 2. Generate Verification Token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
       .createHash("sha256")
       .update(verificationToken)
       .digest("hex");
 
+    // 3. Create the User (your .pre("save") hook in user.js will handle password hashing)
     const user = await User.create({
       name,
       email,
@@ -50,7 +62,7 @@ export const register = async (req, res, next) => {
           <h2>Account Verification</h2>
           <p>Thank you for registering. Please click the button below to verify your email:</p>
           <a href="${verifyURL}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a>
-          <p>After verification, an admin will review your details to grant system access.</p>
+          <p>Link expires in 24 hours.</p>
         </div>
     `;
 
@@ -63,9 +75,10 @@ export const register = async (req, res, next) => {
 
       res.status(201).json({
         message:
-          "Registration successful. Please verify your email via the link sent to your inbox.",
+          "Registration successful. Please check your email to verify your account.",
       });
     } catch (err) {
+      // If email fails, delete the user we just created so they can try again
       await User.findByIdAndDelete(user._id);
       return res
         .status(500)

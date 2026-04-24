@@ -5,8 +5,8 @@ import Reservation from "../models/Reservation.js";
 import PastEvent from "../models/PastEvent.js";
 import User from "../models/User.js"; // <--- 1. MUST BE IMPORTED
 
-cron.schedule("54 2 * * *", async () => {
-  console.log("--- Starting Archive & Delete Job ---");
+cron.schedule("0 0 * * *", async () => {
+  console.log("Starting Archive & Delete Job");
 
   try {
     const now = new Date();
@@ -53,9 +53,9 @@ cron.schedule("54 2 * * *", async () => {
         await Reservation.deleteMany({ event: event._id });
         await Event.findByIdAndDelete(event._id);
 
-        console.log(`✅ Archived successfully: ${event.title}`);
+        console.log(`Archived successfully: ${event.title}`);
       } catch (innerErr) {
-        console.error(`❌ Error processing ${event._id}:`, innerErr);
+        console.error(`Error processing ${event._id}:`, innerErr);
       }
     }
   } catch (err) {

@@ -8,7 +8,7 @@ import eventRoutes from "./routes/eventRoutes.js";
 import reservationRoutes from "./routes/reservationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 // import "./cron/deleteOldEvents.js";
-// import "./cron/remainderJob.js";
+import "./cron/remainderJob.js";
 import "./cron/archieveCron.js";
 const app = express();
 
