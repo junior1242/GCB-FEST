@@ -191,7 +191,6 @@ export default function ManageEvents() {
       await deleteEvent(id);
       toast.success("Event removed successfully");
       loadInitialData();
-      t;
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || "Failed to delete event";
