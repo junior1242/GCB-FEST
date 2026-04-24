@@ -186,57 +186,57 @@ export const updateEvent = async (req, res, next) => {
     next(error);
   }
 };
-export const deleteEvent = async (req, res, next) => {
-  try {
-    const id = req.params.id;
+// export const deleteEvent = async (req, res, next) => {
+//   try {
+//     const id = req.params.id;
 
-    // 1. Find the event
-    const event = await Event.findById(id);
-    if (!event) {
-      const err = new Error("Event not found");
-      err.statusCode = 404;
-      return next(err);
-    }
+//     // 1. Find the event
+//     const event = await Event.findById(id);
+//     if (!event) {
+//       const err = new Error("Event not found");
+//       err.statusCode = 404;
+//       return next(err);
+//     }
 
-    // 2. Find all reservations to get student names and emails
-    const reservations = await Reservation.find({ event: id }).populate("user");
+//     // 2. Find all reservations to get student names and emails
+//     const reservations = await Reservation.find({ event: id }).populate("user");
 
-    // 3. Process the emails
-    const emailPromises = reservations.map((booking) => {
-      if (booking.user && booking.user.email) {
-        // Prepare the personalized HTML for this specific student
-        const html = cancellationTemplate({
-          name: booking.user.name,
-          eventTitle: event.title,
-          eventDate: new Date(event.date).toDateString(),
-        });
+//     // 3. Process the emails
+//     const emailPromises = reservations.map((booking) => {
+//       if (booking.user && booking.user.email) {
+//         // Prepare the personalized HTML for this specific student
+//         const html = cancellationTemplate({
+//           name: booking.user.name,
+//           eventTitle: event.title,
+//           eventDate: new Date(event.date).toDateString(),
+//         });
 
-        return sendEmail({
-          email: booking.user.email,
-          subject: "Event Cancellation Notice",
-          message: html,
-        });
-      }
-    });
+//         return sendEmail({
+//           email: booking.user.email,
+//           subject: "Event Cancellation Notice",
+//           message: html,
+//         });
+//       }
+//     });
 
-    // Send all emails in parallel
-    await Promise.allSettled(emailPromises);
+//     // Send all emails in parallel
+//     await Promise.allSettled(emailPromises);
 
-    // 4. Clean up Cloudinary and DB
-    if (event.imagePublicId) {
-      await cloudinary.uploader.destroy(event.imagePublicId);
-    }
+//     // 4. Clean up Cloudinary and DB
+//     if (event.imagePublicId) {
+//       await cloudinary.uploader.destroy(event.imagePublicId);
+//     }
 
-    await Reservation.deleteMany({ event: id });
-    await Event.findByIdAndDelete(id);
+//     await Reservation.deleteMany({ event: id });
+//     await Event.findByIdAndDelete(id);
 
-    res.json({
-      message: "Event deleted and students notified successfully.",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+//     res.json({
+//       message: "Event deleted and students notified successfully.",
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const getMyPastEvents = async (req, res, next) => {
   try {
@@ -286,6 +286,42 @@ export const getMyPastEvents = async (req, res, next) => {
       success: true,
       count: allPastEvents.length,
       data: allPastEvents,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteEvent = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    // 1. Find the event
+    const event = await Event.findById(id);
+    if (!event) {
+      const err = new Error("Event not found");
+      err.statusCode = 404;
+      return next(err);
+    }
+
+    // 2. Check for existing reservations
+    const reservationCount = await Reservation.countDocuments({ event: id });
+
+    if (reservationCount > 0) {
+      const err = new Error(
+        `Cannot delete event: There are ${reservationCount} active reservation(s).`,
+      );
+      err.statusCode = 400;
+      return next(err);
+    }
+
+    if (event.imagePublicId) {
+      await cloudinary.uploader.destroy(event.imagePublicId);
+    }
+    await Event.findByIdAndDelete(id);
+
+    res.json({
+      message: "Event deleted successfully.",
     });
   } catch (error) {
     next(error);

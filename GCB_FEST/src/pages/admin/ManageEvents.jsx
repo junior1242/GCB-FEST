@@ -181,16 +181,32 @@ export default function ManageEvents() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this event?")) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this event? This action cannot be undone.",
+      )
+    )
+      return;
     try {
       await deleteEvent(id);
-      toast.success("Removed");
+      toast.success("Event removed successfully");
       loadInitialData();
+      t;
     } catch (err) {
-      toast.error("Delete failed");
+      const errorMessage =
+        err.response?.data?.message || "Failed to delete event";
+
+      toast.error(errorMessage, {
+        duration: 3000,
+        style: {
+          border: "1px solid #ef4444",
+          padding: "16px",
+          color: "#fff",
+          background: "#1e1b4b",
+        },
+      });
     }
   };
-
   return (
     <div className="text-white max-w-7xl mx-auto px-2">
       {/* Header Section */}
