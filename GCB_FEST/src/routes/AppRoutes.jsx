@@ -17,7 +17,7 @@ import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
 import PreviousEvents from "../pages/student/PreviousEvents";
 import TodaysEvents from "../pages/admin/TodaysEvents";
-import PastEvents from "../pages/admin/PastEvents";
+// import PastEvents from "../pages/admin/PastEvents";
 
 export default function AppRoutes() {
   return (
@@ -54,7 +54,7 @@ export default function AppRoutes() {
             <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="pending-students" element={<PendingStudents />} />
             <Route path="todays-events" element={<TodaysEvents />} />
-            <Route path="past-events" element={<PastEvents />} />
+            {/* <Route path="past-events" element={<PastEvents />} /> */}
           </Route>
         </Route>
       </Routes>

@@ -78,9 +78,9 @@ export default function PreviousEvents() {
                 </div>
               </div>
 
-              <button className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 py-2 rounded-xl text-sm font-medium transition-colors border border-white/5 text-slate-300 hover:text-white">
+              {/* <button className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 py-2 rounded-xl text-sm font-medium transition-colors border border-white/5 text-slate-300 hover:text-white">
                 View Event Details <ArrowRightCircle size={16} />
-              </button>
+              </button> */}
             </div>
           ))}
         </div>
