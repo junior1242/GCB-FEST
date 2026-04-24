@@ -3,7 +3,7 @@ import Reservation from "../models/Reservation.js";
 import cron from "node-cron";
 
 // Runs every day at 00:00 (Midnight)
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("15 2 * * *", async () => {
   console.log("Running: Daily Auto-Delete Old Events Job...");
 
   try {

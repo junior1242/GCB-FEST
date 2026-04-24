@@ -11,6 +11,8 @@ const eventSchema = new mongoose.Schema(
 
     location: { type: String, required: true },
 
+    targetDepartment: { type: String, default: ""},
+
     maxSeats: { type: Number, required: true },
 
     category: {

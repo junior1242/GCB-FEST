@@ -6,15 +6,15 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 export default function VerifyEmail() {
   const { token } = useParams();
   const [status, setStatus] = useState("loading");
-  const hasCalled = useRef(false); 
+  const hasCalled = useRef(false);
   useEffect(() => {
-
     if (hasCalled.current) return;
     hasCalled.current = true;
 
     const confirmEmail = async () => {
       try {
         await axios.get(`https://gcb-fest.onrender.com/api/auth/verify-email/${token}`);
+        // await axios.get(`http://localhost:8081/api/auth/verify-email/${token}`);
         setStatus("success");
       } catch (err) {
         console.log(err.response?.data);

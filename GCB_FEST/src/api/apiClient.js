@@ -2,6 +2,8 @@ import axios from "axios";
 
 const apiClient = axios.create({
   baseURL: "https://gcb-fest.onrender.com/api",
+  // baseURL: "http://localhost:8081/api",
+
   withCredentials: true,
 });
 

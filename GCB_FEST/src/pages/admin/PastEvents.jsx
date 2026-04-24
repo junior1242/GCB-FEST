@@ -8,7 +8,6 @@ import {
   Loader2,
   Search,
   Calendar,
-  Users,
   Mail,
   X,
 } from "lucide-react";
@@ -29,9 +28,11 @@ const PastEvents = () => {
     try {
       setLoading(true);
       const res = await getPastEvents();
-      setPastEvents(res.data);
+      const dataArray = res.data?.data || res.data;
+      setPastEvents(Array.isArray(dataArray) ? dataArray : []);
     } catch (error) {
       toast.error("Failed to load event archives");
+      setPastEvents([]);
     } finally {
       setLoading(false);
     }
@@ -40,23 +41,38 @@ const PastEvents = () => {
   const viewDetailedReport = async (archiveId) => {
     try {
       const res = await getPastEventDetails(archiveId);
-      setSelectedReport(res.data);
-      setAttendeeSearch(""); // Reset attendee search when opening new report
+      const reportData = res.data?.data || res.data;
+      setSelectedReport(reportData);
+      setAttendeeSearch("");
     } catch (error) {
       toast.error("Could not load report details");
     }
   };
 
-  // Filter Logic
-  const filteredEvents = pastEvents.filter((item) =>
-    item.event?.title.toLowerCase().includes(eventSearch.toLowerCase()),
-  );
+  // Filter Logic for Main List
+  const filteredEvents = Array.isArray(pastEvents)
+    ? pastEvents.filter((item) =>
+        item.eventSnapshot?.title
+          ?.toLowerCase()
+          .includes(eventSearch.toLowerCase()),
+      )
+    : [];
 
-  const filteredAttendees = selectedReport?.registrations?.filter(
-    (reg) =>
-      reg.user?.name.toLowerCase().includes(attendeeSearch.toLowerCase()) ||
-      reg.user?.email.toLowerCase().includes(attendeeSearch.toLowerCase()),
-  );
+  // Filter Logic for Attendee Modal
+  const filteredAttendees = Array.isArray(selectedReport?.registrationsSnapshot)
+    ? selectedReport.registrationsSnapshot.filter((reg) => {
+        const name = reg.user?.name?.toLowerCase() || "";
+        const email = reg.user?.email?.toLowerCase() || "";
+        const roll = reg.user?.rollNumber?.toLowerCase() || "";
+        const search = attendeeSearch.toLowerCase();
+
+        return (
+          name.includes(search) ||
+          email.includes(search) ||
+          roll.includes(search)
+        );
+      })
+    : [];
 
   if (loading)
     return (
@@ -67,17 +83,16 @@ const PastEvents = () => {
 
   return (
     <div className="text-white max-w-6xl mx-auto px-4 py-6">
-      {/* Header & Main Search */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-400">
+          <h1 className="text-2xl font-bold flex items-center gap-2 text-slate-400 italic">
             <History /> Event History & Archives
           </h1>
           <p className="text-slate-500 text-sm">
-            Review past event performance and attendance
+            Review past event data and attendance logs
           </p>
         </div>
-
         <div className="relative">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
@@ -85,89 +100,75 @@ const PastEvents = () => {
           />
           <input
             type="text"
-            placeholder="Search past events..."
-            className="bg-slate-900 border border-white/10 rounded-lg py-2 pl-10 pr-4 w-full md:w-64 focus:outline-none focus:border-blue-500 transition-colors"
+            placeholder="Search events..."
+            className="bg-slate-900 border border-white/10 rounded-xl py-2 px-10 w-full md:w-64 focus:border-blue-500 outline-none text-sm"
             onChange={(e) => setEventSearch(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Events Grid */}
-      <div className="grid grid-cols-1 gap-4">
-        {filteredEvents.length > 0 ? (
-          filteredEvents.map((item) => (
-            <div
-              key={item._id}
-              className="bg-slate-900/50 border border-white/5 rounded-2xl p-5 backdrop-blur-sm flex flex-col md:flex-row justify-between items-center hover:bg-white/5 transition-colors"
-            >
-              <div className="flex items-center gap-5 w-full md:w-auto">
-                <div className="bg-slate-800 p-3 rounded-xl text-slate-500 hidden sm:block">
-                  <Calendar size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-200">
-                    {item.event?.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    {new Date(item.event?.date).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </p>
-
-                  {/* Stats Badges */}
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/10 px-2 py-1 rounded-md">
-                      Total: {item.stats?.totalRegistered || 0}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-500 border border-emerald-500/10 px-2 py-1 rounded-md">
-                      Present: {item.stats?.totalArrived || 0}
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-1 rounded-md">
-                      Absent: {item.stats?.totalAbsent || 0}
-                    </span>
-                  </div>
+      {/* Cards List */}
+      <div className="space-y-4">
+        {filteredEvents.map((item) => (
+          <div
+            key={item._id}
+            className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center hover:bg-white/5 transition-all"
+          >
+            <div className="flex items-center gap-4 w-full">
+              <div className="p-3 bg-slate-800 rounded-xl text-blue-500">
+                <Calendar size={24} />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">
+                  {item.eventSnapshot?.title}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {item.eventSnapshot?.date}
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-md font-bold">
+                    Total: {item.stats?.totalRegistered}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 bg-emerald-500/10 text-emerald-400 rounded-md font-bold">
+                    Attended: {item.stats?.totalArrived}
+                  </span>
                 </div>
               </div>
-
-              <button
-                onClick={() => viewDetailedReport(item._id)}
-                className="mt-4 md:mt-0 w-full md:w-auto flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-              >
-                <FileText size={16} /> View Report
-              </button>
             </div>
-          ))
-        ) : (
-          <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-20 text-center italic text-slate-500">
-            No archived events found matching your search.
+            <button
+              onClick={() => viewDetailedReport(item._id)}
+              className="mt-4 md:mt-0 bg-white/5 border border-white/10 px-6 py-2 rounded-xl text-xs font-bold hover:bg-white/10 transition-all flex items-center gap-2 text-slate-300"
+            >
+              <FileText size={14} /> View Report
+            </button>
           </div>
-        )}
+        ))}
       </div>
 
       {/* Detailed Report Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+          <div className="bg-slate-900 border border-white/10 rounded-[2rem] w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative shadow-2xl">
             {/* Modal Header */}
             <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-200">
-                  {selectedReport.event?.title}
+                <h2 className="text-xl font-bold text-white uppercase italic tracking-tight">
+                  {selectedReport.eventSnapshot?.title}
                 </h2>
-                <p className="text-xs text-slate-500">Full Attendance Record</p>
+                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">
+                  Attendance Archive
+                </p>
               </div>
 
-              <div className="relative w-full sm:w-48">
+              <div className="relative w-full sm:w-64">
                 <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                   size={14}
                 />
                 <input
                   type="text"
-                  placeholder="Search student..."
-                  className="bg-slate-800/50 border border-white/5 rounded-lg py-1.5 pl-9 pr-3 w-full text-xs focus:outline-none focus:border-blue-500"
+                  placeholder="Filter by Name or Roll..."
+                  className="bg-slate-800 border border-white/10 rounded-lg py-1.5 pl-9 pr-3 w-full text-xs focus:outline-none focus:border-blue-500 text-white"
                   value={attendeeSearch}
                   onChange={(e) => setAttendeeSearch(e.target.value)}
                 />
@@ -175,50 +176,58 @@ const PastEvents = () => {
 
               <button
                 onClick={() => setSelectedReport(null)}
-                className="absolute top-4 right-4 sm:static p-2 text-slate-500 hover:text-white transition-colors"
+                className="p-2 hover:bg-white/10 rounded-full text-slate-400 hover:text-white"
               >
                 <X size={20} />
               </button>
             </div>
 
-            {/* Modal Content - Table */}
-            <div className="p-0 overflow-y-auto">
+            {/* Table */}
+            <div className="overflow-y-auto flex-1">
               <table className="w-full text-left">
-                <thead className="bg-white/5 text-slate-500 text-[10px] uppercase tracking-widest">
+                <thead className="bg-white/5 text-slate-500 text-[10px] uppercase tracking-widest sticky top-0">
                   <tr>
-                    <th className="px-6 py-4 font-medium">Student Info</th>
-                    <th className="px-6 py-4 font-medium text-center">
-                      Status
-                    </th>
+                    <th className="px-8 py-4">Student Identity</th>
+                    <th className="px-8 py-4 text-center">Final Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredAttendees.length > 0 ? (
-                    filteredAttendees.map((reg) => (
+                    filteredAttendees.map((reg, idx) => (
                       <tr
-                        key={reg._id}
-                        className="hover:bg-white/5 transition-colors"
+                        key={idx}
+                        className="hover:bg-white/[0.02] transition-colors"
                       >
-                        <td className="px-6 py-4">
+                        <td className="px-8 py-4">
                           <div className="flex flex-col">
-                            <span className="font-semibold text-slate-300">
-                              {reg.user?.name}
+                            {/* STUDENT NAME */}
+                            <span className="font-bold text-sm text-slate-200 uppercase">
+                              {reg.user && typeof reg.user === "object"
+                                ? reg.user.name
+                                : "Member Data Not Found"}
                             </span>
-                            <span className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                              <Mail size={10} /> {reg.user?.email}
-                            </span>
+                            {/* ROLL NO & EMAIL */}
+                            <div className="flex flex-col gap-0.5 mt-1">
+                              <span className="text-[10px] text-blue-400 font-black uppercase tracking-widest">
+                                ROLL NO: {reg.user?.rollNumber || "N/A"}
+                              </span>
+                              <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                                <Mail size={10} className="text-slate-600" />{" "}
+                                {reg.user?.email || "No email archived"}
+                              </span>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-8 py-4">
                           <div className="flex justify-center">
                             {reg.attendanceStatus === "Arrived" ? (
-                              <div className="flex items-center gap-1 text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-emerald-500/20">
+                              <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-4 py-1.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1">
                                 <CheckCircle size={12} /> Present
-                              </div>
+                              </span>
                             ) : (
-                              <div className="flex items-center gap-1 text-red-400 bg-red-400/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-red-400/20">
+                              <span className="bg-red-500/10 text-red-400 border border-red-400/20 px-4 py-1.5 rounded-full text-[9px] font-black uppercase flex items-center gap-1">
                                 <XCircle size={12} /> Absent
-                              </div>
+                              </span>
                             )}
                           </div>
                         </td>
@@ -228,9 +237,9 @@ const PastEvents = () => {
                     <tr>
                       <td
                         colSpan="2"
-                        className="px-6 py-12 text-center text-slate-600 italic"
+                        className="px-8 py-20 text-center text-slate-600 italic"
                       >
-                        No student records found.
+                        No matching records found.
                       </td>
                     </tr>
                   )}
@@ -238,17 +247,16 @@ const PastEvents = () => {
               </table>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-white/5 bg-white/5 flex justify-between items-center">
-              <p className="text-[10px] text-slate-500 px-2 italic">
-                Archived on{" "}
-                {new Date(selectedReport.createdAt).toLocaleDateString()}
-              </p>
+            {/* Footer */}
+            <div className="p-4 border-t border-white/5 bg-white/[0.02] flex justify-between items-center text-[10px] text-slate-500 uppercase font-bold px-8">
+              <span>
+                Archived: {new Date(selectedReport.createdAt).toLocaleString()}
+              </span>
               <button
                 onClick={() => setSelectedReport(null)}
-                className="bg-slate-800 hover:bg-slate-700 px-6 py-2 rounded-xl text-xs font-bold text-slate-200 transition-colors"
+                className="bg-slate-800 hover:bg-slate-700 px-8 py-2 rounded-xl text-white transition-colors"
               >
-                Close Report
+                Close
               </button>
             </div>
           </div>

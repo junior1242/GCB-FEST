@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
-// import PastEvent from "../models/PastEvent.js";
+import PastEvent from "../models/PastEvent.js";
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -153,34 +153,40 @@ export const getEventReservations = async (req, res) => {
     res.status(500).json({ message: "Error fetching student list" });
   }
 };
+// adminController.js
 
-// export const getPastEvents = async (req, res) => {
-//   try {
-//     const archives = await PastEvent.find()
-//       .populate("event") // Get the original event details (title, date)
-//       .sort({ createdAt: -1 }); // Show newest first
-//     res.status(200).json(archives);
-//   } catch (error) {
-//     res.status(500).json({ message: "Failed to fetch archives" });
-//   }
-// };
+export const getPastEvents = async (req, res) => {
+  try {
+    // We remove .populate() because the data is now inside the snapshot objects
+    const archives = await PastEvent.find().sort({ createdAt: -1 });
 
+    // Important: Your frontend expects { data: [...] }
+    res.status(200).json({
+      success: true,
+      data: archives,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch archives" });
+  }
+};
 
+export const getPastEventDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    // We remove .populate() here too.
+    // All details (user names, emails, event title) are already inside the snapshots.
+    const details = await PastEvent.findById(id);
 
-// export const getPastEventDetails = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const details = await PastEvent.findById(id)
-//       .populate("event")
-//       .populate({
-//         path: "registrations",
-//         populate: { path: "user", select: "name email" }, // Get student names inside registrations
-//       });
+    if (!details) {
+      return res.status(404).json({ message: "Record not found" });
+    }
 
-//     if (!details) return res.status(404).json({ message: "Record not found" });
-//     res.status(200).json(details);
-//   } catch (error) {
-//     res.status(500).json({ message: "Error loading details" });
-//   }
-// };
+    res.status(200).json({
+      success: true,
+      data: details,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error loading details" });
+  }
+};

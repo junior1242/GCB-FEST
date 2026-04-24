@@ -1,4 +1,4 @@
-import {sendEmail} from "../utils/sendEmail.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import { registrationTemplate } from "../templates/registerEventTemplate.js";
 import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
@@ -35,6 +35,21 @@ export const createReservation = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!event) return res.status(404).json({ message: "Event not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // --- NEW: DEPARTMENT VALIDATION LOGIC ---
+    // Check if the event is restricted to a specific department
+    // and if the user's department matches it.
+    if (
+      event.targetDepartment &&
+      event.targetDepartment !== "Open" &&
+      event.targetDepartment !== user.department
+    ) {
+      return res.status(403).json({
+        message: `Registration failed. This event is restricted to the ${event.targetDepartment} department student only`,
+      });
+    }
+    // ----------------------------------------
 
     const bookedCount = await Reservation.countDocuments({ event: eventId });
     if (bookedCount >= event.maxSeats) {
@@ -44,18 +59,16 @@ export const createReservation = async (req, res) => {
     const reservation = new Reservation({ event: eventId, user: userId });
     await reservation.save();
 
-  
     const [hours, minutes] = event.time.split(":");
     const hourInt = parseInt(hours);
     const ampm = hourInt >= 12 ? "PM" : "AM";
-    const displayHour = hourInt % 12 || 12; 
+    const displayHour = hourInt % 12 || 12;
     const formattedTime = `${displayHour}:${minutes} ${ampm}`;
 
-    
     const emailHtml = registrationTemplate({
       name: user.name,
       eventTitle: event.title,
-      eventDate: event.date, 
+      eventDate: event.date,
       eventTime: formattedTime,
       eventLocation: event.location || "Main Campus Hall",
     });
@@ -78,4 +91,3 @@ export const createReservation = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-

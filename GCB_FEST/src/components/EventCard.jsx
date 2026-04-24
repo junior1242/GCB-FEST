@@ -9,6 +9,7 @@ const EventCard = ({ event, refreshEvents }) => {
       const token = localStorage.getItem("token");
       await axios.post(
         "https://gcb-fest.onrender.com/api/reservations/register",
+        // "http://localhost:8081/api/reservations/register",
         { eventId: event._id },
         { headers: { Authorization: `Bearer ${token}` } },
       );

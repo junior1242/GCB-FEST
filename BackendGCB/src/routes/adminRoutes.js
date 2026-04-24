@@ -8,8 +8,6 @@ import {
   markAttendance,
   getPastEvents,
   getPastEventDetails,
-  // getUnverifiedStudents,
-  // verifyStudent,
 } from "../controllers/adminController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 

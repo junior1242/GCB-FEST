@@ -1,6 +1,7 @@
 import { cancellationTemplate } from "../templates/deleteEventEmailTemplates.js";
 import { getNewEventTemplate } from "../templates/newEventTemplate.js";
 import { updateEventTemplate } from "../templates/updateEventTemplate.js";
+import PastEvent from "../models/PastEvent.js";
 import { sendEmail } from "../utils/sendEmail.js";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
@@ -15,8 +16,16 @@ const __dirname = path.dirname(__filename);
 
 export const createEvent = async (req, res, next) => {
   try {
-    const { title, category, description, date, time, location, maxSeats } =
-      req.body;
+    const {
+      title,
+      category,
+      description,
+      date,
+      time,
+      location,
+      maxSeats,
+      targetDepartment, // Destructure the new field
+    } = req.body;
 
     // Cloudinary uploaded image
     const imageUrl = req.file ? req.file.path : null;
@@ -31,13 +40,24 @@ export const createEvent = async (req, res, next) => {
       time,
       location,
       maxSeats,
+      targetDepartment: targetDepartment || "", // Save department (empty string means All)
       image: imageUrl,
       imagePublicId,
       createdBy: req.user.id,
     });
 
-    const students = await User.find({ role: "student" }).select("email");
+    // 2. Build the query to find students
+    let studentQuery = { role: "student" };
+
+    // If a specific department is mentioned and it's not "All Departments" (empty string)
+    if (targetDepartment && targetDepartment !== "") {
+      studentQuery.department = targetDepartment;
+    }
+
+    // 3. Find target students
+    const students = await User.find(studentQuery).select("email");
     const emailList = students.map((s) => s.email);
+
     if (emailList.length > 0) {
       const html = getNewEventTemplate({
         title: event.title,
@@ -47,8 +67,7 @@ export const createEvent = async (req, res, next) => {
         description: event.description,
       });
 
-      // Send to all students using BCC for privacy
-      // We don't 'await' this so the Admin doesn't have to wait for 100s of emails to send
+      // Send to the filtered email list
       sendEmail({
         email: emailList,
         subject: `New Event: ${event.title}`,
@@ -56,9 +75,12 @@ export const createEvent = async (req, res, next) => {
       }).catch((err) => console.error("Broadcast Email Error:", err));
     }
 
-    res
-      .status(201)
-      .json({ message: "Event created and students notified", event });
+    res.status(201).json({
+      message: targetDepartment
+        ? `Event created and ${targetDepartment} students notified`
+        : "Event created and all students notified",
+      event,
+    });
   } catch (error) {
     next(error);
   }
@@ -216,32 +238,54 @@ export const deleteEvent = async (req, res, next) => {
   }
 };
 
-
 export const getMyPastEvents = async (req, res, next) => {
   try {
     const userId = req.user.id;
-
-    // 1. Get current date in YYYY-MM-DD format
     const todayStr = new Date().toISOString().split("T")[0];
 
-    // 2. Find all reservations made by this student
-    const userReservations = await Reservation.find({ user: userId });
+    // --- PART 1: GET ARCHIVED EVENTS ---
+    // Look for PastEvents where the student's ID is in the registrationsSnapshot
+    const archivedRecords = await PastEvent.find({
+      "registrationsSnapshot.user": userId,
+    }).sort({ "eventSnapshot.date": -1 });
 
-    // 3. Extract the Event IDs from those reservations
-    const eventIds = userReservations.map((resv) => resv.event);
+    // Format archived data to look like regular events
+    const archivedData = archivedRecords.map((record) => {
+      // Find this specific student's registration status from the snapshot
+      const myRegistration = record.registrationsSnapshot.find(
+        (r) => r.user.toString() === userId.toString(),
+      );
 
-    // 4. Find the actual Event details where:
-    //    - The ID is in our list
-    //    - The date is less than today (Past Events)
-    const events = await Event.find({
-      _id: { $in: eventIds },
-      date: { $lt: todayStr }, // Use 'date' to match your createReservation logic
-    }).sort({ date: -1 });
+      return {
+        ...record.eventSnapshot,
+        attendanceStatus: myRegistration
+          ? myRegistration.attendanceStatus
+          : "N/A",
+        isArchived: true, // Tag to identify it's from history
+      };
+    });
+
+    // --- PART 2: GET ACTIVE PAST EVENTS (NOT YET CRON-JOBBED) ---
+    // This handles events that finished today but the 2:31 AM cron hasn't run yet
+    const activeReservations = await Reservation.find({
+      user: userId,
+    }).populate("event");
+
+    const activePastData = activeReservations
+      .filter((resv) => resv.event && resv.event.date < todayStr)
+      .map((resv) => ({
+        ...resv.event.toObject(),
+        attendanceStatus: resv.attendanceStatus,
+        isArchived: false,
+      }));
+
+    // --- PART 3: COMBINE BOTH ---
+    const allPastEvents = [...activePastData, ...archivedData];
 
     res.status(200).json({
       success: true,
-      count: events.length,
-      data: events,
+      count: allPastEvents.length,
+      data: allPastEvents,
     });
   } catch (error) {
     next(error);

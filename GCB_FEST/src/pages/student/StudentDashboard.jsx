@@ -10,6 +10,9 @@ import {
   X,
   Info,
   CheckCircle,
+  ShieldCheck,
+  ShieldAlert, // Added for the Targeted Error Icon
+  TriangleAlert, // Added for general errors
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -35,6 +38,36 @@ export default function StudentDashboard() {
     }
   };
 
+  // const handleRegister = async (eventId) => {
+  //   try {
+  //     setRegisteringId(eventId);
+  //     const res = await registerForEvent(eventId);
+
+  //     toast.success(res.message || "Successfully registered!", {
+  //       position: "top-right",
+  //     });
+  //     setSelectedEvent(null);
+  //     loadEvents();
+  //   } catch (err) {
+  //     const errorMessage = err.response?.data?.message || "Registration failed";
+
+  //     toast.error(errorMessage, {
+  //       position: "top-right", // Positioned at top-right
+  //       duration: 4000,
+  //       icon: <ShieldAlert size={20} className="text-red-500" />, // Simple Lucide icon
+  //       style: {
+  //         borderRadius: "12px",
+  //         background: "#0f172a", // Match your dashboard slate color
+  //         color: "#fff",
+  //         // border: "1px solid #ef4444",
+  //         fontSize: "14px", // Standard text size
+  //         padding: "12px 16px",
+  //       },
+  //     });
+  //   } finally {
+  //     setRegisteringId(null);
+  //   }
+  // };
   const handleRegister = async (eventId) => {
     try {
       setRegisteringId(eventId);
@@ -57,7 +90,7 @@ export default function StudentDashboard() {
     );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-2">
+    <div className="w-full max-w-7xl mx-auto px-2 py-6">
       <div className="mb-10 text-center md:text-left">
         <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
           <Sparkles className="text-blue-400 w-5 h-5" />
@@ -77,7 +110,6 @@ export default function StudentDashboard() {
           </p>
         </div>
       ) : (
-        /* RESPONSIVE GRID: 1 on mobile, 2 on tablet, 3 on desktop */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {events.map((event) => (
             <div
@@ -91,9 +123,10 @@ export default function StudentDashboard() {
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg">
-                    {event.category?.name || "General"}
+                <div className="absolute bottom-4 left-4 flex gap-2">
+                  <span className="px-3 py-1 bg-purple-600 text-white text-[10px] font-black rounded-lg uppercase tracking-widest shadow-lg flex items-center gap-1">
+                    <ShieldCheck size={10} />
+                    {event.targetDepartment || "All Departments"}
                   </span>
                 </div>
               </div>
@@ -113,19 +146,18 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* --- RESPONSIVE MODAL --- */}
+      {/* --- MODAL --- */}
       {selectedEvent && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
           <div className="bg-slate-900 border border-white/10 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative my-auto">
             <button
               onClick={() => setSelectedEvent(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:cursor-pointer text-white p-2 bg-slate-950/50 rounded-full z-20"
+              className="absolute top-4 right-4 text-slate-400 hover:cursor-pointer hover:text-white p-2 bg-slate-950/50 rounded-full z-20"
             >
               <X size={20} />
             </button>
 
             <div className="flex flex-col md:flex-row max-h-[90vh] overflow-y-auto">
-              {/* Image Side - Fixed height on mobile, auto on desktop */}
               <div className="w-full md:w-2/5 h-48 md:h-auto overflow-hidden">
                 <img
                   src={selectedEvent.image}
@@ -134,12 +166,11 @@ export default function StudentDashboard() {
                 />
               </div>
 
-              {/* Content Side */}
               <div className="w-full md:w-3/5 p-6 md:p-8 flex flex-col">
                 <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
                   {selectedEvent.title}
                 </h2>
-                <p className="text-slate-400 text-sm mb-6 leading-relaxed line-clamp-4 md:line-clamp-none">
+                <p className="text-slate-400 text-sm mb-6 leading-relaxed">
                   {selectedEvent.description}
                 </p>
 
@@ -150,10 +181,25 @@ export default function StudentDashboard() {
                       {selectedEvent.date} at {selectedEvent.time}
                     </span>
                   </div>
+
+                  <div className="flex items-center gap-3 text-sm text-slate-300">
+                    <ShieldAlert
+                      size={16}
+                      className="text-purple-400 shrink-0"
+                    />
+                    <span>
+                      Eligible:{" "}
+                      <span className="text-white font-semibold italic">
+                        {selectedEvent.targetDepartment || "Open for All"}
+                      </span>
+                    </span>
+                  </div>
+
                   <div className="flex items-center gap-3 text-sm text-slate-300">
                     <MapPin size={16} className="text-emerald-500 shrink-0" />
                     <span className="truncate">{selectedEvent.location}</span>
                   </div>
+
                   <div className="flex items-center gap-3 text-sm">
                     <Users size={16} className="text-amber-500 shrink-0" />
                     <span className="text-slate-300 font-medium">
@@ -178,7 +224,11 @@ export default function StudentDashboard() {
                     registeringId === selectedEvent._id ||
                     selectedEvent.remainingSeats <= 0
                   }
-                  className="w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-xl hover:cursor-pointer bg-blue-500 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 mt-auto"
+                  className={`w-full bg-blue-600 text-white font-bold py-3 md:py-4 rounded-xl transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-2 mt-auto ${
+                    selectedEvent.remainingSeats <= 0
+                      ? "cursor-not-allowed"
+                      : "hover:cursor-pointer hover:bg-blue-500"
+                  }`}
                 >
                   {registeringId === selectedEvent._id ? (
                     <Loader2 size={18} className="animate-spin" />

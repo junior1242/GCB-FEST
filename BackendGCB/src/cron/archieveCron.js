@@ -1,81 +1,64 @@
 // utils/archiveCron.js
 import cron from "node-cron";
-import mongoose from "mongoose";
 import Event from "../models/Event.js";
 import Reservation from "../models/Reservation.js";
 import PastEvent from "../models/PastEvent.js";
+import User from "../models/User.js"; // <--- 1. MUST BE IMPORTED
 
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("54 2 * * *", async () => {
   console.log("--- Starting Archive & Delete Job ---");
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const todayStr = new Date().toISOString().split("T")[0];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
 
-    // 1. Find expired events that haven't been archived yet
-    const expiredEvents = await Event.find({
-      date: { $lt: todayStr },
-      isArchived: false,
-    }).session(session);
+    const allEvents = await Event.find({});
+    const expiredEvents = allEvents.filter((event) => {
+      if (!event.date) return false;
+      const eventDate = new Date(event.date);
+      return !isNaN(eventDate.getTime()) && eventDate < now;
+    });
 
-    if (expiredEvents.length === 0) {
-      console.log("No events to archive.");
-      await session.commitTransaction();
-      return;
-    }
+    if (expiredEvents.length === 0) return console.log("No events to archive.");
 
     for (const event of expiredEvents) {
-      // 2. Fetch registrations for this event
-      // We only need the ID and attendanceStatus for stats
-      const registrations = await Reservation.find({ event: event._id })
-        .select("_id attendanceStatus")
-        .lean()
-        .session(session);
+      try {
+        // 2. We populate with EXPLICIT model reference
+        const registrations = await Reservation.find({ event: event._id })
+          .populate({
+            path: "user",
+            model: "User", // Explicitly naming the model
+            select: "name email rollNumber department", // Make sure these fields exist in your User.js
+          })
+          .lean();
 
-      const totalRegistered = registrations.length;
-      const totalArrived = registrations.filter(
-        (r) => r.attendanceStatus === "Arrived",
-      ).length;
-
-      const stats = {
-        totalRegistered: totalRegistered,
-        totalArrived: totalArrived,
-        totalAbsent: totalRegistered - totalArrived,
-      };
-
-      // 3. Create the Archive Record in PastEvent
-      // IMPORTANT: Your current schema uses Refs. These will point to null once deleted.
-      await PastEvent.create(
-        [
-          {
-            event: event._id,
-            registrations: registrations.map((r) => r._id),
-            stats,
+        // 3. Create the archive
+        await PastEvent.create({
+          eventSnapshot: event.toObject(),
+          registrationsSnapshot: registrations,
+          stats: {
+            totalRegistered: registrations.length,
+            totalArrived: registrations.filter(
+              (r) => r.attendanceStatus === "Arrived",
+            ).length,
+            totalAbsent:
+              registrations.length -
+              registrations.filter((r) => r.attendanceStatus === "Arrived")
+                .length,
           },
-        ],
-        { session },
-      );
+          completedAt: new Date(),
+        });
 
-      // 4. DELETE original Reservations associated with this event
-      await Reservation.deleteMany({ event: event._id }).session(session);
+        // 4. Delete active data
+        await Reservation.deleteMany({ event: event._id });
+        await Event.findByIdAndDelete(event._id);
 
-      // 5. DELETE the original Event
-      await Event.findByIdAndDelete(event._id).session(session);
-
-      console.log(`Archived & Deleted Event: ${event._id}`);
+        console.log(`✅ Archived successfully: ${event.title}`);
+      } catch (innerErr) {
+        console.error(`❌ Error processing ${event._id}:`, innerErr);
+      }
     }
-
-    // Commit all changes
-    await session.commitTransaction();
-    console.log(`Successfully processed ${expiredEvents.length} events.`);
   } catch (err) {
-    // If anything fails, nothing is deleted and nothing is archived
-    await session.abortTransaction();
-    console.error("Archive Error - Changes Rolled Back:", err);
-  } finally {
-    session.endSession();
-    console.log("--- Job Finished ---");
+    console.error("Global Cron Error:", err);
   }
 });
