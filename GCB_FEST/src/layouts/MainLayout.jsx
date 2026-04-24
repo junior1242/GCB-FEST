@@ -57,7 +57,7 @@ export default function MainLayout() {
             path: "/admin/todays-events",
             icon: CalendarCheck,
           },
-          // { name: "Past Events", path: "/admin/past-events", icon: History },
+          { name: "Past Events", path: "/admin/past-events", icon: History },
         ]
       : [
           {

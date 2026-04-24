@@ -1,3 +1,12 @@
+import React from 'react'
+
+export default function PastEvents() {
+  return (
+    <div>Future Work</div>
+  )
+}
+
+
 // import React, { useEffect, useState } from "react";
 // import { getPastEvents, getPastEventDetails } from "../../api/adminApi";
 // import {
