@@ -8,7 +8,6 @@ import {
   getMyPastEvents,
 } from "../controllers/eventController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
-// const upload = require("../middleware/upload");
 import { upload } from "../middleware/upload.js";
 
 // CREATE EVENT (Admin)
@@ -35,5 +34,6 @@ router.put("/:id", protect, adminOnly, upload.single("image"), updateEvent);
 router.delete("/:id", protect, adminOnly, deleteEvent);
 
 router.get("/my-past-events", protect, getMyPastEvents);
+
 
 export default router;

@@ -16,11 +16,16 @@ const reservationSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    attendanceStatus: {
+    status: {
       type: String,
-      enum: ["Pending", "Arrived", "Absent"],
-      default: "Pending",
+      enum: ["cancelled", "confirmed"],
+      default: "confirmed",
     },
+    // attendanceStatus: {
+    //   type: String,
+    //   enum: ["Pending", "Arrived", "Absent"],
+    //   default: "Pending",
+    // },
   },
   { timestamps: true },
 );

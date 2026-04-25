@@ -181,29 +181,30 @@ export default function ManageEvents() {
   };
 
   const handleDelete = async (id) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this event? This action cannot be undone.",
-      )
-    )
-      return;
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+
     try {
       await deleteEvent(id);
       toast.success("Event removed successfully");
       loadInitialData();
     } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || "Failed to delete event";
+      let errorMessage = "An unexpected error occurred";
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      else if (typeof err.response?.data === "string") {
+        const match = err.response.data.match(/Error: (.*?)<br>/); 
+        if (match && match[1]) {
+          errorMessage = match[1];
+        } else {
+          errorMessage = err.response.statusText || "Server Error";
+        }
+      }
 
-      toast.error(errorMessage, {
-        duration: 3000,
-        style: {
-          border: "1px solid #ef4444",
-          padding: "16px",
-          color: "#fff",
-          background: "#1e1b4b",
-        },
-      });
+      toast.error(errorMessage);
+
+      console.error("Final Error Message:", errorMessage);
     }
   };
   return (

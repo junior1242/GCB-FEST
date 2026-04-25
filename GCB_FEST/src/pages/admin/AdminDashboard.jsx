@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { fetchDashboardStats } from "../../api/adminApi.js";
 import {
   getCategories,
-  createCategory,
   deleteCategory,
+  updateCategory,
 } from "../../api/categoryApi.js";
 import {
   Users,
@@ -14,7 +14,9 @@ import {
   ListOrdered,
   Tag,
   Trash2,
-  Plus,
+  Edit2,
+  Check,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -27,8 +29,11 @@ export default function AdminDashboard() {
     eventStats: [],
   });
   const [categories, setCategories] = useState([]);
-  const [newCategory, setNewCategory] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // New states for editing
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState("");
 
   const loadData = async () => {
     try {
@@ -38,7 +43,7 @@ export default function AdminDashboard() {
         getCategories(),
       ]);
       setStats(statsData);
-      setCategories(catData.data || catData); // Handle both response formats
+      setCategories(catData.data || catData);
     } catch (error) {
       console.error("Dashboard error:", error);
       toast.error("Failed to load dashboard data");
@@ -51,22 +56,6 @@ export default function AdminDashboard() {
     loadData();
   }, []);
 
-  // const handleAddCategory = async (e) => {
-  //   e.preventDefault();
-  //   if (!newCategory.trim()) return;
-  //   try {
-  //     await createCategory({ name: newCategory });
-  //     setNewCategory("");
-  //     const catData = await getCategories();
-  //     setCategories(catData.data || catData);
-  //     toast.success("Category added!");
-  //   } catch (error) {
-  //     toast.error(error.response?.data?.message || "Add failed");
-  //   }
-  // };
-
-  
-
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure?")) return;
     try {
@@ -78,6 +67,38 @@ export default function AdminDashboard() {
         error.response?.data?.message ||
           "Cannot delete category being used by events",
       );
+    }
+  };
+
+  // Start editing mode
+  const startEditing = (category) => {
+    setEditingId(category._id);
+    setEditName(category.name);
+  };
+
+  // Cancel editing mode
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditName("");
+  };
+
+  // Handle Update logic
+  const handleUpdateCategory = async (id) => {
+    if (!editName.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
+    try {
+      await updateCategory(id, editName);
+      setCategories(
+        categories.map((cat) =>
+          cat._id === id ? { ...cat, name: editName } : cat,
+        ),
+      );
+      toast.success("Category updated!");
+      setEditingId(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Update failed");
     }
   };
 
@@ -192,40 +213,60 @@ export default function AdminDashboard() {
             <Tag size={20} /> Categories
           </h2>
 
-          {/* Inline Add Category Form */}
-          {/* <form onSubmit={handleAddCategory} className="flex gap-2 mb-6">
-            <input
-              type="text"
-              placeholder="Add new..."
-              className="bg-slate-800 border border-white/10 rounded-lg py-2 px-3 text-sm w-full focus:outline-none focus:border-emerald-500 transition-colors"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="bg-emerald-600 hover:bg-emerald-500 p-2 rounded-lg transition-all"
-            >
-              <Plus size={18} />
-            </button>
-          </form> */}
-
-          {/* Category List */}
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {categories.length > 0 ? (
               categories.map((cat) => (
                 <div
                   key={cat._id}
                   className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-white/10 transition-all"
                 >
-                  <span className="text-slate-200 text-sm font-medium">
-                    {cat.name}
-                  </span>
-                  <button
-                    onClick={() => handleDeleteCategory(cat._id)}
-                    className="text-slate-500 hover:text-red-500 opacity-0 cursor-pointer group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  {editingId === cat._id ? (
+                    // Edit Mode UI
+                    <div className="flex items-center gap-2 w-full">
+                      <input
+                        autoFocus
+                        className="bg-slate-800 border border-emerald-500/50 rounded px-2 py-1 text-sm w-full outline-none"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleUpdateCategory(cat._id)
+                        }
+                      />
+                      <button
+                        onClick={() => handleUpdateCategory(cat._id)}
+                        className="text-emerald-500 hover:text-emerald-400"
+                      >
+                        <Check size={18} />
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ) : (
+                    // Default Mode UI
+                    <>
+                      <span className="text-slate-200 text-sm font-medium">
+                        {cat.name}
+                      </span>
+                      <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all">
+                        <button
+                          onClick={() => startEditing(cat)}
+                          className="text-slate-400 hover:text-blue-400 transition-colors"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCategory(cat._id)}
+                          className="text-slate-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))
             ) : (

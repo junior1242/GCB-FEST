@@ -4,6 +4,7 @@ import {
   createCategory,
   getCategories,
   deleteCategory,
+  updateCategory
 } from "../controllers/categoryController.js";
 
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
@@ -12,6 +13,7 @@ router.get("/", getCategories);
 
 // Admin Only Routes
 router.post("/", protect, adminOnly, createCategory);
-// router.put("/:id", protect, adminOnly, updateCategory);
+
+router.put("/:id", protect, adminOnly, updateCategory);
 router.delete("/:id", protect, adminOnly, deleteCategory);
 export default router;

@@ -10,15 +10,22 @@ export const getAdminStats = async (req, res) => {
         User.countDocuments({ role: "student" }),
         User.countDocuments({ role: "student", status: "pending" }),
         Event.countDocuments(),
-        Reservation.countDocuments(),
+        Reservation.countDocuments({
+          status: { $eq: "confirmed" },
+        }),
       ]);
 
-    // 2. Fetch all events and calculate reservation counts for each
     const events = await Event.find().select("title date maxSeats");
-
     const eventStats = await Promise.all(
       events.map(async (event) => {
-        const count = await Reservation.countDocuments({ event: event._id });
+        // 2. Count both pending and confirmed for this event
+        const count = await Reservation.countDocuments({
+          event: event._id,
+          status: { $eq: "confirmed" },
+        });
+
+        // console.log(count, "reservations for event:", event.title);
+
         return {
           _id: event._id,
           title: event.title,
@@ -28,6 +35,7 @@ export const getAdminStats = async (req, res) => {
         };
       }),
     );
+
     res.status(200).json({
       totalStudents,
       pendingStudents,
@@ -39,7 +47,6 @@ export const getAdminStats = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // Get all verified students waiting for admin approval
 export const getPendingStudents = async (req, res, next) => {
   try {

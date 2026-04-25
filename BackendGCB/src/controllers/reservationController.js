@@ -3,15 +3,25 @@ import { registrationTemplate } from "../templates/registerEventTemplate.js";
 import Reservation from "../models/Reservation.js";
 import Event from "../models/Event.js";
 import User from "../models/User.js";
-
 export const getAllRegistrations = async (req, res) => {
   try {
     const registrations = await Reservation.find()
+      // 1. Populate the event details
       .populate("event", "title date time location")
-      .populate("user", "name email");
+      // 2. Populate the user details (student name and email)
+      .populate("user", "name email")
+      // 3. Sort by newest first
+      .sort({ createdAt: -1 });
+
+    // The 'status' and 'attendanceStatus' are part of the Reservation object
+    // so they are automatically included in the JSON response.
     res.status(200).json(registrations);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error fetching all registrations:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
@@ -89,5 +99,55 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ message: "Already registered." });
     }
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateReservationStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const userId = req.user?.id || req.user?._id; // Try both common names
+
+
+    const reservation = await Reservation.findById(id).populate("event");
+
+    if (!reservation) {
+      console.log("FAILED: No reservation found with this ID");
+      return res
+        .status(404)
+        .json({ success: false, message: "Reservation not found in DB" });
+    }
+
+    console.log("Reservation Owner in DB:", reservation.user.toString());
+
+    if (reservation.user.toString() !== userId.toString()) {
+      console.log("FAILED: ID Mismatch");
+      return res
+        .status(404)
+        .json({ success: false, message: "Not authorized (ID mismatch)" });
+    }
+
+    // 2. If re-confirming, check if event is full
+    if (status === "confirmed" && reservation.status !== "confirmed") {
+      const activeCount = await Reservation.countDocuments({
+        event: reservation.event._id,
+        status: "confirmed",
+      });
+      if (activeCount >= reservation.event.maxSeats) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Event is now full!" });
+      }
+    }
+
+    const updated = await Reservation.findByIdAndUpdate(
+      id,
+      { $set: { status: status } },
+      { new: true },
+    );
+
+    res.status(200).json({ success: true, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

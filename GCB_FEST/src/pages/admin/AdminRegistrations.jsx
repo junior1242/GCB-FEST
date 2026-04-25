@@ -8,7 +8,9 @@ export default function AdminRegistrations() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -21,23 +23,36 @@ export default function AdminRegistrations() {
     }
   };
 
-  const filteredData = registrations.filter(reg =>
+  const filteredData = registrations.filter(
+    (reg) =>
       reg.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.event?.title.toLowerCase().includes(searchTerm.toLowerCase())
+      reg.event?.title.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-blue-500" /></div>;
+  if (loading)
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-blue-500" />
+      </div>
+    );
 
   return (
     <div className="w-full max-w-7xl mx-auto px-2">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 text-center md:text-left">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Event Registrations</h1>
-          <p className="text-slate-400 text-sm">Monitor student sign-ups across all events.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-white">
+            Event Registrations
+          </h1>
+          <p className="text-slate-400 text-sm">
+            Monitor student sign-ups across all events.
+          </p>
         </div>
 
         <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            size={18}
+          />
           <input
             type="text"
             placeholder="Search student or event..."
@@ -61,34 +76,51 @@ export default function AdminRegistrations() {
             </thead>
             <tbody className="divide-y divide-white/5 text-slate-300">
               {filteredData.map((reg) => (
-                <tr key={reg._id} className="hover:bg-white/5 transition-colors">
+                <tr
+                  key={reg._id}
+                  className="hover:bg-white/5 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs shrink-0 uppercase">
                         {reg.user?.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-bold text-white text-sm truncate">{reg.user?.name}</div>
-                        <div className="text-[10px] text-slate-500 flex items-center gap-1"><Mail size={10} /> {reg.user?.email}</div>
+                        <div className="font-bold text-white text-sm truncate">
+                          {reg.user?.name}
+                        </div>
+                        <div className="text-[10px] text-slate-500 flex items-center gap-1">
+                          <Mail size={10} /> {reg.user?.email}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-medium text-blue-400 text-sm truncate">{reg.event?.title}</div>
-                    <div className="text-[10px] flex items-center gap-1 text-slate-500"><Calendar size={10} /> {reg.event?.date}</div>
+                    <div className="font-medium text-blue-400 text-sm truncate">
+                      {reg.event?.title}
+                    </div>
+                    <div className="text-[10px] flex items-center gap-1 text-slate-500">
+                      <Calendar size={10} /> {reg.event?.date}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-xs">
                     {new Date(reg.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded-full border border-emerald-500/20 uppercase">Confirmed</span>
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded-full border border-emerald-500/20 uppercase">
+                      {reg.status}
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        {filteredData.length === 0 && <div className="p-10 text-center text-slate-500 italic">No records found.</div>}
+        {filteredData.length === 0 && (
+          <div className="p-10 text-center text-slate-500 italic">
+            No records found.
+          </div>
+        )}
       </div>
     </div>
   );

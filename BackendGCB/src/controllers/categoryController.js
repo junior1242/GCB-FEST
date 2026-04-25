@@ -31,28 +31,28 @@ export const getCategories = async (req, res, next) => {
 };
 
 // UPDATE CATEGORY (Admin Only)
-// export const updateCategory = async (req, res, next) => {
-//   try {
-//     const id = req.params.id;
-//     const { name } = req.body;
+export const updateCategory = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const { name } = req.body;
 
-//     const category = await Category.findByIdAndUpdate(
-//       id,
-//       { name },
-//       { new: true },
-//     );
+    const category = await Category.findByIdAndUpdate(
+      id,
+      { name },
+      { new: true },
+    );
 
-//     if (!category) {
-//       const err = new Error("Category not found");
-//       err.statusCode = 404;
-//       return next(err);
-//     }
+    if (!category) {
+      const err = new Error("Category not found");
+      err.statusCode = 404;
+      return next(err);
+    }
 
-//     res.json({ message: "Category updated", category });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+    res.json({ message: "Category updated", category });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // DELETE CATEGORY (Admin Only)
 export const deleteCategory = async (req, res, next) => {
