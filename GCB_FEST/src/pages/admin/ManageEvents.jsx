@@ -69,7 +69,12 @@ export default function ManageEvents() {
         getEvents(),
         getCategories(),
       ]);
-      setEvents(eventData);
+      setEvents(
+        [...eventData].sort(
+          (a, b) =>
+            new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date),
+        ),
+      );
       setCategories(catData);
     } catch (err) {
       toast.error("Failed to sync data with server");
@@ -191,10 +196,8 @@ export default function ManageEvents() {
       let errorMessage = "An unexpected error occurred";
       if (err.response?.data?.message) {
         errorMessage = err.response.data.message;
-      }
-      
-      else if (typeof err.response?.data === "string") {
-        const match = err.response.data.match(/Error: (.*?)<br>/); 
+      } else if (typeof err.response?.data === "string") {
+        const match = err.response.data.match(/Error: (.*?)<br>/);
         if (match && match[1]) {
           errorMessage = match[1];
         } else {
