@@ -5,7 +5,7 @@ import Event from "../models/Event.js";
 import User from "../models/User.js";
 export const getAllRegistrations = async (req, res) => {
   try {
-    const registrations = await Reservation.find()
+    const registrations = await Reservation.find({ status: "confirmed" })
       // 1. Populate the event details
       .populate("event", "title date time location")
       // 2. Populate the user details (student name and email)
@@ -107,7 +107,6 @@ export const updateReservationStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     const userId = req.user?.id || req.user?._id; // Try both common names
-
 
     const reservation = await Reservation.findById(id).populate("event");
 
