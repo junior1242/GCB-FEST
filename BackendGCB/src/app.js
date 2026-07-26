@@ -12,10 +12,21 @@ import "./cron/remainderJob.js";
 import "./cron/archieveCron.js";
 const app = express();
 
+const allowedOrigins = [
+  "https://gcb-fest-frontend.onrender.com",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: "https://gcb-fest-frontend.onrender.com",
-    // origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., mobile apps, curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS policy: origin ${origin} not allowed`));
+      }
+    },
     credentials: true,
   }),
 );
